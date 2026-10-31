@@ -30,10 +30,11 @@ Each VM gets its own Makefile. Its targets run on the host and need virsh, xorri
 $ make -C provisioners/debian13 up              # create and start debian13
 $ make -C provisioners/debian13 wait-for-ready  # wait for SSH and cloud-init
 $ make -C provisioners/debian13 ssh CMD=uptime  # run a command over SSH; SSH_EXTRA_OPTS adds options to ssh
+$ make -C provisioners/debian13 stop            # shut debian13 down; stop-force cuts its power instead
 $ make -C provisioners/debian13 down            # delete debian13, but keep what is Reusable or Shared
 ```
 
-`up` creates the pools and volumes that are missing, but defines the domain every time. So a change to `domain.xml` takes effect from the next start of the VM, and its disks stay. Other changes take effect after `down` and `up`.
+`up` creates the pools and volumes that are missing, but defines the domain every time. So a change to `domain.xml` takes effect after `stop` and `up`, and the disks stay. Other changes take effect after `down` and `up`.
 
 To create VMs in parallel, first run `make create-shared` for one VM at a time. It uploads what the VMs share, such as their images, so that no two VMs upload the same image at once.
 

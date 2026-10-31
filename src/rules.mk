@@ -15,8 +15,13 @@ MKISOFS ?= xorriso -as mkisofs
 SSH ?= ssh
 # More options for ssh at run time, such as SSH_EXTRA_OPTS=-v. They come after SSH_OPTS of vars.mk.
 SSH_EXTRA_OPTS ?=
+# Seconds that stop waits for the guest to shut down, as long as libvirt-guests waits by default.
+STOP_TIMEOUT ?= 300
 
 export LIBVIRT_DEFAULT_URI
+
+# True while the domain is on: running, shutting down or paused. A missing domain is off.
+is_on = $(VIRSH) domstate $(NAME) 2>/dev/null | grep -Ev '^(shut off|crashed)?$$' >/dev/null
 
 # A VM that logs in with a password has the file sshpass, and sshpass -f types the password from it.
 ssh_cmd = $(if $(wildcard sshpass),sshpass -f sshpass )$(SSH) $(SSH_OPTS) $(SSH_EXTRA_OPTS)
@@ -76,7 +81,7 @@ $(foreach p,$(2),$(call delete_pool,$(p)))
 rm -f $(SEED)
 endef
 
-.PHONY: up down download create-shared create start stop delete delete-all console ssh wait-for-ready
+.PHONY: up down download create-shared create start stop stop-force delete delete-all console ssh wait-for-ready
 up: create start
 down: delete
 
@@ -106,15 +111,25 @@ create: create-shared $(SEED)
 start:
 	if ! $(VIRSH) domstate $(NAME) | grep running >/dev/null; then $(VIRSH) start $(NAME); fi
 
+# stop asks the guest to shut down, through its guest agent or the power button, and waits for it.
+# The request fails when the guest goes off on its own meanwhile, so only the wait decides. A guest
+# that does not shut down in STOP_TIMEOUT seconds stays on. stop-force cuts its power, as delete and
+# delete-all do, so the guest may lose what it has not written to its disks. Run stop before delete
+# when a Reusable disk of the VM should keep all of it.
 stop:
-	if $(VIRSH) domstate $(NAME) 2>/dev/null | grep running >/dev/null; then $(VIRSH) destroy $(NAME); fi
+	if $(is_on); then $(VIRSH) shutdown $(NAME) || true; fi
+	for i in $$(seq $(STOP_TIMEOUT)); do if ! $(is_on); then exit 0; fi; sleep 1; done; \
+	echo '$(NAME) did not shut down in $(STOP_TIMEOUT) seconds; make stop-force cuts its power.' >&2; exit 1
+
+stop-force:
+	if $(is_on); then $(VIRSH) destroy $(NAME) || ! $(is_on); fi
 
 # delete deletes what is Disposable, and delete-all what is Reusable too. What is Shared always
 # stays, because other VMs may use it, for example an image as the backing file of their disks.
-delete: stop
+delete: stop-force
 	$(call teardown,$(call with_policy,VOLUME,Disposable,$(VOLUMES)),$(call with_policy,POOL,Disposable,$(POOLS)))
 
-delete-all: stop
+delete-all: stop-force
 	$(call teardown,$(call with_policy,VOLUME,Disposable Reusable,$(VOLUMES)),$(call with_policy,POOL,Disposable Reusable,$(POOLS)))
 
 console:
