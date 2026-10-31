@@ -22,5 +22,5 @@ VOLUME.default/debian-cloud-12-amd64.qcow2.backing :=
 VOLUME.default/debian-cloud-12-amd64.qcow2.capacity := upload
 VOLUME.default/debian-cloud-12-amd64.qcow2.download := https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2
 VOLUME.default/debian-cloud-12-amd64.qcow2.lifecyclePolicy := Shared
-VOLUME.default/debian-cloud-12-amd64.qcow2.upload := ../../.images/debian-cloud-12-amd64.qcow2
+VOLUME.default/debian-cloud-12-amd64.qcow2.upload := ../.images/debian-cloud-12-amd64.qcow2
 VOLUMES := debian12/debian12-seed.iso default/debian-cloud-12-amd64.qcow2 debian12/debian12-boot.qcow2

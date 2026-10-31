@@ -2,7 +2,7 @@
 local i = import '../index.libsonnet';
 local t = i.templates;
 
-function(image, imageDir='../../.images') t.sharedImage(image, imageDir) + {
+function(image, imageDir='../.images') t.sharedImage(image, imageDir) + {
   local vm = self,
   domain+: { devices+: { 'disk:live': {
     '@type': 'volume', '@device': 'cdrom',

@@ -22,5 +22,5 @@ VOLUME.default/debian-cloud-13-amd64.qcow2.backing :=
 VOLUME.default/debian-cloud-13-amd64.qcow2.capacity := upload
 VOLUME.default/debian-cloud-13-amd64.qcow2.download := https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-amd64.qcow2
 VOLUME.default/debian-cloud-13-amd64.qcow2.lifecyclePolicy := Shared
-VOLUME.default/debian-cloud-13-amd64.qcow2.upload := ../../.images/debian-cloud-13-amd64.qcow2
+VOLUME.default/debian-cloud-13-amd64.qcow2.upload := ../.images/debian-cloud-13-amd64.qcow2
 VOLUMES := debian13/debian13-seed.iso default/debian-cloud-13-amd64.qcow2 debian13/debian13-boot.qcow2

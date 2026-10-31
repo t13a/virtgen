@@ -3,7 +3,7 @@
 local i = import '../index.libsonnet';
 local t = i.templates;
 
-function(image, imageDir='../../.images')
+function(image, imageDir='../.images')
   t.sharedImage(image, imageDir) + t.vmDisk('boot', 'vda', backing=image, bootOrder=1) + {
   local vm = self,
   local seedIso = vm.name + '-seed.iso',

@@ -51,4 +51,4 @@ $ openssl passwd -6  # asks for a password and prints its hash
   - `rules.mk` defines the targets of each VM's Makefile. The renderer copies it into the provisioners.
   - The `Makefile` runs the renderer.
 - `example/registry/` is an example registry. `vms/` has one file per VM, and each VM is composed from the other directories.
-- `example/provisioners/` holds what the image renders from the example registry.
+- `example/provisioners/` holds what the image renders from the example registry. Its `.images/` caches the images that the VMs download.
