@@ -20,7 +20,7 @@ local uuid(s) = local h = std.md5(s); h[0:8] + '-' + h[8:12] + '-' + h[12:16] + 
     features: { acpi: {}, apic: {} },
     cpu: { '@mode': 'host-passthrough' },
     devices: {
-      'interface:default': { '@type': 'network', source: { '@network': vm.node.network }, model: { '@type': 'virtio' } },
+      'interface:default': { '@type': 'network', source: { '@network': vm.node.defaultNetwork.name }, model: { '@type': 'virtio' } },
       serial: { '@type': 'pty' },
       console: { '@type': 'pty' },
       // The QEMU guest agent in the guest talks to the host through this port.

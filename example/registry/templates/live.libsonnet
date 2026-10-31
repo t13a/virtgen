@@ -7,7 +7,7 @@ function(image, imageDir='../../.images') t.sharedImage(image, imageDir) + {
   domain+: { devices+: { 'disk:sda': {
     '@type': 'volume', '@device': 'cdrom',
     driver: { '@name': 'qemu', '@type': image.format },
-    source: { '@pool': vm.node.imagePool.name, '@volume': image.volume },
+    source: { '@pool': vm.node.defaultPool.name, '@volume': image.volume },
     target: { '@dev': 'sda', '@bus': 'sata' },
     readonly: {},
     // libvirt boots from the hard disk unless a device has a boot order.

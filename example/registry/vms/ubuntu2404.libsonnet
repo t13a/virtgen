@@ -3,7 +3,7 @@ local t = i.templates;
 
 t.base
 + t.cloud(image=i.images.ubuntuCloud(version='24.04'))
-+ t.cloudStaticIp(ip='192.168.122.11', dns=['192.168.122.1', '1.1.1.1'])
++ t.cloudStaticIp(ip='192.168.122.11')
 + t.sshPassword(password='P@ssw0rd')
 + t.sshNoHostKeyChecking
 + t.dataDisk(dev='vdb', gib=10)

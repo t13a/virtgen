@@ -11,14 +11,14 @@ function(image, imageDir='../../.images') t.sharedImage(image, imageDir) + {
     autostart:: true,
     '@type': 'dir',
     name: vm.name,
-    target: { path: vm.node.poolDir + '/' + vm.name },
+    target: { path: vm.node.defaultPool.path + '/' + vm.name },
   } },
   volumes+: {
     [vm.name]: {
       [bootVolume]: {
         name: bootVolume,
         target: { format: { '@type': 'qcow2' } },
-        backingStore: { path: vm.node.imagePool.path + '/' + image.volume, format: { '@type': image.format } },
+        backingStore: { path: vm.node.defaultPool.path + '/' + image.volume, format: { '@type': image.format } },
       },
       [seedIso]: {
         upload:: seedIso,
@@ -47,5 +47,5 @@ function(image, imageDir='../../.images') t.sharedImage(image, imageDir) + {
   // The agent's unit has no [Install] section: udev starts it when the port of base appears, and on
   // the first boot that happens before the package is installed. So the first boot starts it here.
   userData: { packages: ['qemu-guest-agent'], runcmd: ['systemctl start qemu-guest-agent'] },
-  ssh: { user: image.sshUser },
+  ssh: { user: image.vars.sshUser },
 }
