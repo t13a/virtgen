@@ -6,6 +6,8 @@ POOL.ubuntu2404.lifecyclePolicy := Disposable
 POOLS := ubuntu2404
 SEED := ubuntu2404-seed.iso
 SSH_HOST := 192.168.122.11
+SSH_OPTS := -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null'
+SSH_PASSWORD := P@ssw0rd
 SSH_USER := ubuntu
 VOLUME.default/ubuntu-cloud-24.04-amd64.qcow2.backing := 
 VOLUME.default/ubuntu-cloud-24.04-amd64.qcow2.capacity := upload

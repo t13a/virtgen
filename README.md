@@ -24,11 +24,12 @@ $ podman run --rm --userns=keep-id -v ./registry:/src/registry -v ./provisioners
 $ podman run --rm --userns=keep-id -v ./registry:/src/registry vm-provisioner-libvirt-ng config
 ```
 
-Each VM gets its own Makefile. Its targets run on the host and need virsh, xorriso, curl, and ssh.
+Each VM gets its own Makefile. Its targets run on the host and need virsh, xorriso, curl, and ssh, plus sshpass for a VM that logs in with a password.
 
 ```console
 $ make -C provisioners/debian13 up              # create and start debian13
 $ make -C provisioners/debian13 wait-for-ready  # wait for SSH and cloud-init
+$ make -C provisioners/debian13 ssh CMD=uptime  # run a command over SSH; SSH_ARGS adds arguments to ssh
 $ make -C provisioners/debian13 down            # delete debian13, but keep what is Reusable or Shared
 ```
 

@@ -13,10 +13,16 @@ VIRSH ?= virsh
 CURL ?= curl
 MKISOFS ?= xorriso -as mkisofs
 SSH ?= ssh
-SSH_OPTS ?=
+# More arguments for ssh at run time, such as SSH_ARGS=-v. They come after SSH_OPTS of vars.mk.
+SSH_ARGS ?=
 
 export LIBVIRT_DEFAULT_URI
+ifneq ($(SSH_PASSWORD),)
+# sshpass -e reads the password from SSHPASS, so it never shows in a command line.
+export SSHPASS := $(SSH_PASSWORD)
+endif
 
+ssh_cmd = $(if $(SSH_PASSWORD),sshpass -e )$(SSH) $(SSH_OPTS) $(SSH_ARGS)
 ssh_target = $(or $(SSH_USER),$$(id -un))@$(or $(SSH_HOST),$$($(VIRSH) domifaddr $(NAME) | grep -Eo '[0-9.]+/[0-9]+' | cut -d/ -f1 | head -n1))
 
 # Volumes are named POOL/VOLUME, and their records in vars.mk are VOLUME.POOL/VOLUME.*.
@@ -115,10 +121,14 @@ delete-all: stop
 console:
 	$(VIRSH) console --force $(NAME)
 
+# CMD runs a command on the VM instead of a login shell, such as CMD='uptime; df -h'. Its raw value
+# goes to the VM as one word, so neither make nor the local shell expands it.
+unexport CMD
+ssh: CMD :=
 ssh:
-	$(SSH) $(SSH_OPTS) $(ssh_target)
+	@$(ssh_cmd) $(ssh_target) $(if $(value CMD),'$(subst ','\'',$(value CMD))')
 
 # Wait for SSH, then report how cloud-init finished: exit 0 done, 2 degraded, 1 error.
 wait-for-ready:
-	until $(SSH) $(SSH_OPTS) -o ConnectTimeout=3 $(ssh_target) true 2>/dev/null; do sleep 3; done
-	$(SSH) $(SSH_OPTS) $(ssh_target) cloud-init status --wait
+	until $(ssh_cmd) -o ConnectTimeout=3 $(ssh_target) true 2>/dev/null; do sleep 3; done
+	$(ssh_cmd) $(ssh_target) cloud-init status --wait

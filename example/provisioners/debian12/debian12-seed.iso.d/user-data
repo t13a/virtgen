@@ -1,5 +1,9 @@
 #cloud-config
+chpasswd:
+  expire: false
 packages:
 - "qemu-guest-agent"
+password: "P@ssw0rd"
 runcmd:
 - "systemctl start qemu-guest-agent"
+ssh_pwauth: true

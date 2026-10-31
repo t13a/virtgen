@@ -5,7 +5,9 @@
 // A VM is an object whose visible sections mirror the format of their readers:
 //   domain, pools, volumes             libvirt XML
 //   userData, metaData, networkConfig  cloud-init NoCloud files
-//   ssh                                { user, host } for `make ssh`
+//   ssh                                user, host, password, and options for `make ssh`
+// ssh.options are ssh_config options, given as -o; an array becomes a comma-separated list. On a node
+// whose URI is qemu+ssh, the VM is reached through the host of the URI, unless options set ProxyJump.
 // Hidden fields carry what the XML cannot hold:
 //   VM      name, node (with uri), seed (the NoCloud ISO, relative to the VM directory)
 //   domain  autostart (default false)
@@ -61,6 +63,8 @@ local yaml(v, header='') = header + std.manifestYamlDoc(v, quote_keys=false) + '
 // Make reads `$` as a reference and `#` as a comment, so both are escaped.
 local mkEsc(s) = std.strReplace(std.strReplace(std.toString(s), '$', '$$'), '#', '\\#');
 local mk(vars) = std.join('', [k + ' := ' + mkEsc(vars[k]) + '\n' for k in std.objectFields(vars)]);
+// Single quotes keep a word whole in the shell.
+local shQuote(s) = "'" + std.strReplace(s, "'", "'\\''") + "'";
 
 // ---------------------------------------------------------------------------
 // Checks: each returns true or fails with a message that says where the problem is.
@@ -93,6 +97,12 @@ local checkBool(where, o, k) =
 local checkName(where, s) =
   local bad = [c for c in std.stringChars(s) if std.member(' \t:=#$%/\\', c)];
   if std.length(bad) == 0 then true else fail(where, 'name must not contain ' + std.join('', bad));
+// An ssh_config keyword is a word, and its value a string, a number, or an array of strings.
+local checkSshOptions(where, o) =
+  local isKeyword(k) = std.length([c for c in std.stringChars(k) if !std.member('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', c)]) == 0;
+  local isValue(v) = std.isString(v) || std.isNumber(v) || (std.isArray(v) && std.all([std.isString(x) for x in v]));
+  local bad = [k for k in std.objectFields(o) if !isKeyword(k) || !isValue(o[k])];
+  if std.length(bad) == 0 then true else fail(where, 'not an ssh_config keyword with a string, number or array of strings: ' + std.join(', ', bad));
 
 // libvirt needs a capacity. Without one in the XML, rules.mk fills it in at run time.
 local capacityFrom(where, v) =
@@ -106,7 +116,7 @@ local check(name, vm, pools, vols) =
   local ssh = get(vm, 'ssh', {});
   local cloudInit = std.setInter(std.objectFields(vm), cloudInitSections);
   local unknownSections = std.setDiff(std.objectFields(vm), sections);
-  local unknownSsh = std.setDiff(std.objectFields(ssh), ['host', 'user']);
+  local unknownSsh = std.setDiff(std.objectFields(ssh), ['host', 'options', 'password', 'user']);
   all([
     if std.length(unknownSections) > 0 then fail(name, 'unknown section ' + std.join(', ', unknownSections)) else true,
     if std.length(unknownSsh) > 0 then fail(name + '.ssh', 'unknown field ' + std.join(', ', unknownSsh)) else true,
@@ -114,6 +124,7 @@ local check(name, vm, pools, vols) =
     checkHidden(name + '.domain', vm.domain, ['autostart']),
     checkBool(name + '.domain', vm.domain, 'autostart'),
     checkHidden(name + '.ssh', ssh, []),
+    checkSshOptions(name + '.ssh.options', get(ssh, 'options', {})),
   ] + [checkHidden(name + '.' + s, vm[s], []) for s in cloudInit] + std.flattenArrays([
     local where = name + '.pools.' + p;
     [checkName(where, p), checkHidden(where, pools[p], ['autostart', 'lifecyclePolicy']),
@@ -135,6 +146,15 @@ local check(name, vm, pools, vols) =
 local yesNo(b) = if b then 'yes' else 'no';
 local record(prefix, fields) = { [prefix + '.' + k]: fields[k] for k in std.objectFields(fields) };
 
+// The VMs of a remote node sit on its network, so ssh jumps through the host that libvirt connects to.
+local jumpOf(uri) =
+  local parts = std.splitLimit(uri, '://', 1);
+  if std.length(parts) == 2 && std.endsWith(parts[0], '+ssh') then { ProxyJump: std.splitLimit(parts[1], '/', 1)[0] } else {};
+local sshOpts(uri, options) =
+  local o = jumpOf(uri) + options;
+  local value(v) = if std.isArray(v) then std.join(',', v) else std.toString(v);
+  std.join(' ', ['-o ' + shQuote(k + '=' + value(o[k])) for k in std.objectFields(o)]);
+
 local vars(name, vm, pools, vols) =
   local ssh = get(vm, 'ssh', {});
   // Backing volumes must exist before the volumes on top of them.
@@ -147,6 +167,8 @@ local vars(name, vm, pools, vols) =
     SEED: get(vm, 'seed', ''),
     SSH_USER: get(ssh, 'user', ''),
     SSH_HOST: get(ssh, 'host', ''),
+    SSH_PASSWORD: get(ssh, 'password', ''),
+    SSH_OPTS: sshOpts(vm.node.uri, get(ssh, 'options', {})),
     POOLS: std.join(' ', std.objectFields(pools)),
     VOLUMES: std.join(' ', [x.id for x in ordered]),
   } + std.foldl(function(acc, p) acc + record('POOL.' + p, {
