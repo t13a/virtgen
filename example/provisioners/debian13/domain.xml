@@ -24,9 +24,6 @@
       <source network="default"/>
     </interface>
     <serial type="pty"/>
-    <video>
-      <model type="vga"/>
-    </video>
   </devices>
   <features>
     <acpi/>
@@ -34,7 +31,10 @@
   </features>
   <memory unit="MiB">1024</memory>
   <name>debian13</name>
-  <os>
+  <os firmware="efi">
+    <firmware>
+      <feature enabled="no" name="secure-boot"/>
+    </firmware>
     <type arch="x86_64" machine="q35">hvm</type>
   </os>
   <uuid>7a2ba5cb-1dea-a5b6-d757-f533cd18ad5d</uuid>

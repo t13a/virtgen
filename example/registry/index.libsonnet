@@ -23,6 +23,7 @@
     'spice': import 'templates/spice.libsonnet',
     'sshNoHostKeyChecking': import 'templates/sshNoHostKeyChecking.libsonnet',
     'sshPassword': import 'templates/sshPassword.libsonnet',
+    'uefi': import 'templates/uefi.libsonnet',
     'video': import 'templates/video.libsonnet',
     'vmDisk': import 'templates/vmDisk.libsonnet',
     'vmPool': import 'templates/vmPool.libsonnet',
