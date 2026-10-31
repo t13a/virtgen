@@ -7,7 +7,6 @@ POOLS := ubuntu2604
 SEED := ubuntu2604-seed.iso
 SSH_HOST := 192.168.122.12
 SSH_OPTS := -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null'
-SSH_PASSWORD := P@ssw0rd
 SSH_USER := ubuntu
 VOLUME.default/ubuntu-cloud-26.04-amd64.qcow2.backing := 
 VOLUME.default/ubuntu-cloud-26.04-amd64.qcow2.capacity := upload

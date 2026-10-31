@@ -7,7 +7,6 @@ POOLS := debian12
 SEED := debian12-seed.iso
 SSH_HOST := 
 SSH_OPTS := -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null'
-SSH_PASSWORD := P@ssw0rd
 SSH_USER := debian
 VOLUME.debian12/debian12-boot.qcow2.backing := /var/lib/libvirt/images/debian-cloud-12-amd64.qcow2
 VOLUME.debian12/debian12-boot.qcow2.capacity := backing

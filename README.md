@@ -29,7 +29,7 @@ Each VM gets its own Makefile. Its targets run on the host and need virsh, xorri
 ```console
 $ make -C provisioners/debian13 up              # create and start debian13
 $ make -C provisioners/debian13 wait-for-ready  # wait for SSH and cloud-init
-$ make -C provisioners/debian13 ssh CMD=uptime  # run a command over SSH; SSH_ARGS adds arguments to ssh
+$ make -C provisioners/debian13 ssh CMD=uptime  # run a command over SSH; SSH_EXTRA_OPTS adds options to ssh
 $ make -C provisioners/debian13 down            # delete debian13, but keep what is Reusable or Shared
 ```
 

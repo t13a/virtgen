@@ -13,16 +13,13 @@ VIRSH ?= virsh
 CURL ?= curl
 MKISOFS ?= xorriso -as mkisofs
 SSH ?= ssh
-# More arguments for ssh at run time, such as SSH_ARGS=-v. They come after SSH_OPTS of vars.mk.
-SSH_ARGS ?=
+# More options for ssh at run time, such as SSH_EXTRA_OPTS=-v. They come after SSH_OPTS of vars.mk.
+SSH_EXTRA_OPTS ?=
 
 export LIBVIRT_DEFAULT_URI
-ifneq ($(SSH_PASSWORD),)
-# sshpass -e reads the password from SSHPASS, so it never shows in a command line.
-export SSHPASS := $(SSH_PASSWORD)
-endif
 
-ssh_cmd = $(if $(SSH_PASSWORD),sshpass -e )$(SSH) $(SSH_OPTS) $(SSH_ARGS)
+# A VM that logs in with a password has the file sshpass, and sshpass -f types the password from it.
+ssh_cmd = $(if $(wildcard sshpass),sshpass -f sshpass )$(SSH) $(SSH_OPTS) $(SSH_EXTRA_OPTS)
 ssh_target = $(or $(SSH_USER),$$(id -un))@$(or $(SSH_HOST),$$($(VIRSH) domifaddr $(NAME) | grep -Eo '[0-9.]+/[0-9]+' | cut -d/ -f1 | head -n1))
 
 # Volumes are named POOL/VOLUME, and their records in vars.mk are VOLUME.POOL/VOLUME.*.

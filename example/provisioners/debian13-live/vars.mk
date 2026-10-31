@@ -5,7 +5,6 @@ POOLS :=
 SEED := 
 SSH_HOST := 
 SSH_OPTS := 
-SSH_PASSWORD := 
 SSH_USER := 
 VOLUME.default/debian-live-13.7.0-amd64-gnome.iso.backing := 
 VOLUME.default/debian-live-13.7.0-amd64-gnome.iso.capacity := upload

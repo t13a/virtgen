@@ -7,7 +7,6 @@ POOLS := debian13
 SEED := debian13-seed.iso
 SSH_HOST := 
 SSH_OPTS := -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null'
-SSH_PASSWORD := P@ssw0rd
 SSH_USER := debian
 VOLUME.debian13/debian13-boot.qcow2.backing := /var/lib/libvirt/images/debian-cloud-13-amd64.qcow2
 VOLUME.debian13/debian13-boot.qcow2.capacity := backing

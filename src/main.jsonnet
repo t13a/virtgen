@@ -167,7 +167,6 @@ local vars(name, vm, pools, vols) =
     SEED: get(vm, 'seed', ''),
     SSH_USER: get(ssh, 'user', ''),
     SSH_HOST: get(ssh, 'host', ''),
-    SSH_PASSWORD: get(ssh, 'password', ''),
     SSH_OPTS: sshOpts(vm.node.uri, get(ssh, 'options', {})),
     POOLS: std.join(' ', std.objectFields(pools)),
     VOLUMES: std.join(' ', [x.id for x in ordered]),
@@ -194,12 +193,16 @@ local files(name, vm) =
     for p in std.objectFields(volumes)
   ]);
   local seed = get(vm, 'seed', '');
+  local password = get(get(vm, 'ssh', {}), 'password', '');
   assert check(name, vm, pools, vols);
   {
     Makefile: 'include vars.mk\ninclude ../rules.mk\n',
     'vars.mk': mk(vars(name, vm, pools, vols)),
     'domain.xml': xml('domain', vm.domain),
   }
+  // The password gets a file of its own, which sshpass reads, so that a repository can encrypt it
+  // and still keep vars.mk in plain text.
+  + (if password != '' then { sshpass: password + '\n' } else {})
   + { ['pools/' + p + '.xml']: xml('pool', pools[p]) for p in std.objectFields(pools) }
   + { ['volumes/' + x.id + '.xml']: xml('volume', x.obj) for x in vols }
   + (if std.objectHas(vm, 'userData') then { [seed + '.d/user-data']: yaml(vm.userData, '#cloud-config\n') } else {})
