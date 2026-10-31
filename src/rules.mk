@@ -118,12 +118,13 @@ delete-all: stop
 console:
 	$(VIRSH) console --force $(NAME)
 
-# CMD runs a command on the VM instead of a login shell, such as CMD='uptime; df -h'. Its raw value
-# goes to the VM as one word, so neither make nor the local shell expands it.
+# CMD runs a command on the VM instead of a login shell, such as CMD='uptime; df -h'. Only ssh
+# exports it, with its raw value, and the shell hands it to ssh as one word: neither make nor the
+# local shell expands it, and a script of many lines stays whole.
 unexport CMD
-ssh: CMD :=
+ssh: override export CMD := $(value CMD)
 ssh:
-	@$(ssh_cmd) $(ssh_target) $(if $(value CMD),'$(subst ','\'',$(value CMD))')
+	@$(ssh_cmd) $(ssh_target) $(if $(CMD),"$$CMD")
 
 # Wait for SSH, then report how cloud-init finished: exit 0 done, 2 degraded, 1 error.
 wait-for-ready:
