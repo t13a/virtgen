@@ -5,23 +5,23 @@
       <target name="org.qemu.guest_agent.0" type="virtio"/>
     </channel>
     <console type="pty"/>
-    <disk device="disk" type="volume">
+    <disk device="disk" type="file">
       <boot order="1"/>
       <driver cache="none" discard="unmap" name="qemu" type="qcow2"/>
       <serial>boot</serial>
-      <source pool="ubuntu2404" volume="ubuntu2404-boot.qcow2"/>
+      <source file="/var/lib/libvirt/images/ubuntu2404/ubuntu2404-boot.qcow2"/>
       <target bus="virtio" dev="vda"/>
     </disk>
-    <disk device="disk" type="volume">
+    <disk device="disk" type="file">
       <driver cache="none" discard="unmap" name="qemu" type="qcow2"/>
       <serial>data</serial>
-      <source pool="ubuntu2404" volume="ubuntu2404-data.qcow2"/>
+      <source file="/var/lib/libvirt/images/ubuntu2404/ubuntu2404-data.qcow2"/>
       <target bus="virtio" dev="vdb"/>
     </disk>
-    <disk device="cdrom" type="volume">
+    <disk device="cdrom" type="file">
       <driver name="qemu" type="raw"/>
       <readonly/>
-      <source pool="ubuntu2404" volume="ubuntu2404-seed.iso"/>
+      <source file="/var/lib/libvirt/images/ubuntu2404/ubuntu2404-seed.iso"/>
       <target bus="sata" dev="sda"/>
     </disk>
     <interface type="network">

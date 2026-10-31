@@ -14,9 +14,9 @@ function(image, imageDir='../.images')
     target: { format: { '@type': 'raw' } },
   } } },
   domain+: { devices+: { 'disk:seed': {
-    '@type': 'volume', '@device': 'cdrom',
+    '@type': 'file', '@device': 'cdrom',
     driver: { '@name': 'qemu', '@type': 'raw' },
-    source: { '@pool': vm.name, '@volume': seedIso },
+    source: { '@file': vm.pools[vm.name].target.path + '/' + seedIso },
     target: { '@dev': 'sda', '@bus': 'sata' },
     readonly: {},
   } } },

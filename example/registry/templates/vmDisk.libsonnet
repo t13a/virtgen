@@ -5,6 +5,9 @@
 // cache=none bypasses the page cache of the host. discard=unmap passes TRIM of the guest, such as
 // from fstrim, to the image, which frees the space on the host. The serial names the disk in
 // /dev/disk/by-id of the guest, as virtio-<name>, whatever device file the guest gives it.
+// The domain refers to the volume by its path in the pool, not as type='volume': under AppArmor,
+// libvirt writes the profile of the VM before it turns volumes into paths, so QEMU could open none
+// of them. The other disks of the templates do the same.
 local i = import '../index.libsonnet';
 local t = i.templates;
 
@@ -20,9 +23,9 @@ function(name, dev, gib=null, backing=null, lifecyclePolicy='Disposable', bootOr
       backingStore: { path: vm.node.defaultPool.path + '/' + backing.volume, format: { '@type': backing.format } },
     } else {}) } },
   domain+: { devices+: { ['disk:' + name]: {
-    '@type': 'volume', '@device': 'disk',
+    '@type': 'file', '@device': 'disk',
     driver: { '@name': 'qemu', '@type': 'qcow2', '@cache': 'none', '@discard': 'unmap' },
-    source: { '@pool': vm.name, '@volume': volume },
+    source: { '@file': vm.pools[vm.name].target.path + '/' + volume },
     target: { '@dev': dev, '@bus': 'virtio' },
     serial: name,
   } + (if bootOrder != null then { boot: { '@order': bootOrder } } else {}) } },
