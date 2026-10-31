@@ -12,6 +12,13 @@ Build the image. It renders a registry and validates the result.
 $ podman build -t vm-provisioner-libvirt-ng src
 ```
 
+Or pull it from GitHub Packages, where every push to `main` publishes it as `latest`.
+
+```console
+$ podman pull ghcr.io/t13a/vm-provisioner-libvirt-ng
+$ podman tag ghcr.io/t13a/vm-provisioner-libvirt-ng vm-provisioner-libvirt-ng
+```
+
 Render the registry in `registry/` into `provisioners/`. This also updates `registry/index.libsonnet`, which lists the files of the registry. It validates the files that differ from the last render, and replaces `provisioners/` only when they are valid.
 
 ```console

@@ -1,0 +1,63 @@
+name: main
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Build the image
+        run: docker build -t vm-provisioner-libvirt-ng src
+
+      # The render goes into an empty directory, so every file is validated, and it must match the
+      # provisioners and the index that are committed.
+      - name: Render the example registry
+        run: |
+          mkdir "$RUNNER_TEMP/provisioners"
+          docker run --rm --user "$(id -u):$(id -g)" \
+            -v "$PWD/example/registry:/src/registry" \
+            -v "$RUNNER_TEMP/provisioners:/src/provisioners" \
+            vm-provisioner-libvirt-ng
+          diff -r "$RUNNER_TEMP/provisioners" example/provisioners
+          git diff --exit-code
+
+      - name: Log in to the Container registry
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        if: github.event_name == 'push'
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
+            type=sha
+
+      # The image was tested above, and this build reuses its cache.
+      - name: Build and push the image
+        if: github.event_name == 'push'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./src
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
