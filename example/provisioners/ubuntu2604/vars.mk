@@ -1,5 +1,5 @@
 AUTOSTART := yes
-LIBVIRT_DEFAULT_URI := qemu+ssh://root@hv1/system
+LIBVIRT_DEFAULT_URI := qemu:///system
 NAME := ubuntu2604
 POOL.ubuntu2604.autostart := yes
 POOL.ubuntu2604.lifecyclePolicy := Disposable

@@ -1,5 +1,5 @@
 AUTOSTART := no
-LIBVIRT_DEFAULT_URI := qemu+ssh://root@hv1/system
+LIBVIRT_DEFAULT_URI := qemu:///system
 NAME := debian13-live
 POOLS := 
 SEED := 

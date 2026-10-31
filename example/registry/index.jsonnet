@@ -6,8 +6,7 @@
     'ubuntuCloud': import 'images/ubuntuCloud.libsonnet',
   },
   nodes:: {
-    'hv1': import 'nodes/hv1.libsonnet',
-    'hv2': import 'nodes/hv2.libsonnet',
+    'localhost': import 'nodes/localhost.libsonnet',
   },
   templates:: {
     'base': import 'templates/base.libsonnet',

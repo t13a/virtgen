@@ -6,5 +6,5 @@ t.base
 // GRUB of this image needs a video device, even without a remote display.
 + t.video()
 + {
-  node: r.nodes.hv2,
+  node: r.nodes.localhost,
 }

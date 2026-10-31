@@ -1,5 +1,5 @@
 AUTOSTART := no
-LIBVIRT_DEFAULT_URI := qemu+ssh://root@hv2/system
+LIBVIRT_DEFAULT_URI := qemu:///system
 NAME := debian13
 POOL.debian13.autostart := yes
 POOL.debian13.lifecyclePolicy := Disposable

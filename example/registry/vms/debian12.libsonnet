@@ -4,5 +4,5 @@ local t = r.templates;
 t.base
 + t.cloud(image=r.images.debianCloud(version='12'))
 + {
-  node: r.nodes.hv2,
+  node: r.nodes.localhost,
 }

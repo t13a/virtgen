@@ -6,6 +6,6 @@ t.base
 + t.video(model='qxl')
 + t.spice
 + {
-  node: r.nodes.hv1,
+  node: r.nodes.localhost,
   domain+: { memory+: { '#text': 4096 }, vcpu: 2 },
 }
