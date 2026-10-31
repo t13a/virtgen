@@ -2,7 +2,8 @@
 // Only the address and the MAC address are per VM; the rest comes from the default network of the node.
 
 // The MAC address maps the 2nd to 4th octets of the IPv4 address into QEMU's range 52:54:00:XX:XX:XX.
-// Two VMs collide only when their addresses differ in the 1st octet alone.
+// Two VMs collide only when their addresses differ in the 1st octet alone. It becomes vm.mac, which
+// base gives the NIC, and the network config matches vm.mac too, so a VM that sets mac changes both.
 local macOf(ip) =
   local octets = std.map(std.parseInt, std.split(ip, '.'));
   assert std.length(octets) == 4 && std.all([o >= 0 && o <= 255 for o in octets]) : 'not an IPv4 address: ' + ip;
@@ -11,9 +12,9 @@ local macOf(ip) =
 function(ip, mac=macOf(ip)) {
   local vm = self,
   local net = vm.node.defaultNetwork,
-  domain+: { devices+: { 'interface:default'+: { mac: { '@address': mac } } } },
+  mac:: mac,
   networkConfig: { version: 2, ethernets: { eth0: {
-    match: { macaddress: mac },
+    match: { macaddress: vm.mac },
     addresses: [ip + '/' + net.prefix],
     routes: [{ to: 'default', via: net.gateway }],
     nameservers: { addresses: net.dns },

@@ -4,19 +4,22 @@
 
 // A fixed UUID and MAC address keep the VM the same machine when `make up` defines its domain again:
 // virsh updates the domain instead of failing, and the network config that cloud-init wrote for the
-// MAC address of the first boot still matches. 52:54:00 is the range of QEMU.
-local uuid(s) = local h = std.md5(s); h[0:8] + '-' + h[8:12] + '-' + h[12:16] + '-' + h[16:20] + '-' + h[20:32];
-local mac(s) = local h = std.md5(s); '52:54:00:' + h[0:2] + ':' + h[2:4] + ':' + h[4:6];
+// MAC address of the first boot still matches. Both come from the name of the VM, and a VM whose UUID
+// or MAC address collides with another's sets uuid or mac. 52:54:00 is the range of QEMU.
+local uuidOf(s) = local h = std.md5(s); h[0:8] + '-' + h[8:12] + '-' + h[12:16] + '-' + h[16:20] + '-' + h[20:32];
+local macOf(s) = local h = std.md5(s); '52:54:00:' + h[0:2] + ':' + h[2:4] + ':' + h[4:6];
 
 {
   local vm = self,
   name:: error 'name is required',
   node:: error 'node is required',
+  uuid:: uuidOf(vm.name),
+  mac:: macOf(vm.name),
   domain: {
     autostart:: false,
     '@type': 'kvm',
     name: vm.name,
-    uuid: uuid(vm.name),
+    uuid: vm.uuid,
     memory: { '@unit': 'MiB', '#text': 1024 },
     vcpu: 1,
     os: { type: { '@arch': 'x86_64', '@machine': 'q35', '#text': 'hvm' } },
@@ -25,7 +28,7 @@ local mac(s) = local h = std.md5(s); '52:54:00:' + h[0:2] + ':' + h[2:4] + ':' +
     devices: {
       'interface:default': {
         '@type': 'network',
-        mac: { '@address': mac(vm.name) },
+        mac: { '@address': vm.mac },
         source: { '@network': vm.node.defaultNetwork.name },
         model: { '@type': 'virtio' },
       },
