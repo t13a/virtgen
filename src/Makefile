@@ -17,19 +17,28 @@ PROVISIONERS_DIR ?= provisioners
 $(foreach v,REGISTRY_DIR PROVISIONERS_DIR,$(if $(strip $($(v))),,$(error $(v) is empty)))
 
 INDEX := $(REGISTRY_DIR)/index.libsonnet
+# gen renders into TMP_DIR, validates the files that differ from the provisioners of the last gen,
+# and only then replaces the provisioners. A file that has not changed passed the same validation
+# before, and a gen that fails leaves the provisioners as they were, with its render in TMP_DIR.
+TMP_DIR := $(PROVISIONERS_DIR)/.tmp
+# $(call changed,GLOB): the files in TMP_DIR that match GLOB and differ from the provisioners.
+changed = $$(for f in $(TMP_DIR)/$(1); do cmp -s $$f $(PROVISIONERS_DIR)/$${f\#$(TMP_DIR)/} || echo $$f; done)
 
 .PHONY: gen config $(INDEX)
 gen: $(INDEX)
-	rm -rf $(PROVISIONERS_DIR)/*
-	$(JSONNET) -S -c -m $(PROVISIONERS_DIR) --tla-code-file registry=$(INDEX) main.jsonnet > /dev/null
-	for f in $(PROVISIONERS_DIR)/*/domain.xml; do $(VIRT_XML_VALIDATE) $$f domain; done
-	for f in $(PROVISIONERS_DIR)/*/pools/*.xml; do $(VIRT_XML_VALIDATE) $$f storagepool; done
-	for f in $(PROVISIONERS_DIR)/*/volumes/*/*.xml; do $(VIRT_XML_VALIDATE) $$f storagevol; done
+	rm -rf $(TMP_DIR)
+	$(JSONNET) -S -c -m $(TMP_DIR) --tla-code-file registry=$(INDEX) main.jsonnet > /dev/null
+	for f in $(call changed,*/domain.xml); do $(VIRT_XML_VALIDATE) $$f domain; done
+	for f in $(call changed,*/pools/*.xml); do $(VIRT_XML_VALIDATE) $$f storagepool; done
+	for f in $(call changed,*/volumes/*/*.xml); do $(VIRT_XML_VALIDATE) $$f storagevol; done
 	if command -v $(firstword $(CLOUD_INIT)) > /dev/null; then \
-	  for f in $(PROVISIONERS_DIR)/*/*.d/user-data; do $(CLOUD_INIT) schema -c $$f; done; \
+	  for f in $(call changed,*/*.d/user-data); do $(CLOUD_INIT) schema -c $$f; done; \
 	else \
 	  echo 'warning: $(firstword $(CLOUD_INIT)) not found, so user-data was not validated' >&2; \
 	fi
+	rm -rf $(PROVISIONERS_DIR)/*
+	mv $(TMP_DIR)/* $(PROVISIONERS_DIR)/
+	rmdir $(TMP_DIR)
 
 # Prints the VMs as the renderer sees them. Its recipes are silent, so stdout carries only JSON.
 config: $(INDEX)
