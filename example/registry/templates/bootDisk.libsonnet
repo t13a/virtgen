@@ -13,11 +13,13 @@ function(gib, lifecyclePolicy='Reusable') t.vmPool + {
     capacity: { '@unit': 'GiB', '#text': gib },
     target: { format: { '@type': 'qcow2' } },
   } } },
-  domain+: { devices+: { 'disk:vda': {
+  // The same driver as the disk of cloud. The serial makes the disk /dev/disk/by-id/virtio-boot in the guest.
+  domain+: { devices+: { 'disk:boot': {
     '@type': 'volume', '@device': 'disk',
-    driver: { '@name': 'qemu', '@type': 'qcow2' },
+    driver: { '@name': 'qemu', '@type': 'qcow2', '@cache': 'none', '@discard': 'unmap' },
     source: { '@pool': vm.name, '@volume': volume },
     target: { '@dev': 'vda', '@bus': 'virtio' },
+    serial: 'boot',
     boot: { '@order': 1 },
   } } },
 }

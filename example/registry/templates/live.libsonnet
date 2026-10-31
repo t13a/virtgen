@@ -4,7 +4,7 @@ local t = i.templates;
 
 function(image, imageDir='../../.images') t.sharedImage(image, imageDir) + {
   local vm = self,
-  domain+: { devices+: { 'disk:sda': {
+  domain+: { devices+: { 'disk:live': {
     '@type': 'volume', '@device': 'cdrom',
     driver: { '@name': 'qemu', '@type': image.format },
     source: { '@pool': vm.node.defaultPool.name, '@volume': image.volume },

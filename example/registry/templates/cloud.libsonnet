@@ -22,13 +22,19 @@ function(image, imageDir='../../.images') t.sharedImage(image, imageDir) + t.vmP
     },
   },
   domain+: { devices+: {
-    'disk:vda': {
+    // cache=none bypasses the page cache of the host. discard=unmap passes TRIM of the guest, such as
+    // from fstrim, to the image, which frees the space on the host. The serial names the disk in
+    // /dev/disk/by-id of the guest, here virtio-boot. The boot order keeps the VM from booting
+    // another disk, such as a data disk with a boot loader.
+    'disk:boot': {
       '@type': 'volume', '@device': 'disk',
-      driver: { '@name': 'qemu', '@type': 'qcow2' },
+      driver: { '@name': 'qemu', '@type': 'qcow2', '@cache': 'none', '@discard': 'unmap' },
       source: { '@pool': vm.name, '@volume': bootVolume },
       target: { '@dev': 'vda', '@bus': 'virtio' },
+      serial: 'boot',
+      boot: { '@order': 1 },
     },
-    'disk:sda': {
+    'disk:seed': {
       '@type': 'volume', '@device': 'cdrom',
       driver: { '@name': 'qemu', '@type': 'raw' },
       source: { '@pool': vm.name, '@volume': seedIso },

@@ -5,21 +5,24 @@
       <target name="org.qemu.guest_agent.0" type="virtio"/>
     </channel>
     <console type="pty"/>
+    <disk device="disk" type="volume">
+      <boot order="1"/>
+      <driver cache="none" discard="unmap" name="qemu" type="qcow2"/>
+      <serial>boot</serial>
+      <source pool="ubuntu2604" volume="ubuntu2604-boot.qcow2"/>
+      <target bus="virtio" dev="vda"/>
+    </disk>
+    <disk device="disk" type="volume">
+      <driver cache="none" discard="unmap" name="qemu" type="qcow2"/>
+      <serial>data</serial>
+      <source pool="ubuntu2604" volume="ubuntu2604-data.qcow2"/>
+      <target bus="virtio" dev="vdb"/>
+    </disk>
     <disk device="cdrom" type="volume">
       <driver name="qemu" type="raw"/>
       <readonly/>
       <source pool="ubuntu2604" volume="ubuntu2604-seed.iso"/>
       <target bus="sata" dev="sda"/>
-    </disk>
-    <disk device="disk" type="volume">
-      <driver name="qemu" type="qcow2"/>
-      <source pool="ubuntu2604" volume="ubuntu2604-boot.qcow2"/>
-      <target bus="virtio" dev="vda"/>
-    </disk>
-    <disk device="disk" type="volume">
-      <driver name="qemu" type="qcow2"/>
-      <source pool="ubuntu2604" volume="ubuntu2604-vdb.qcow2"/>
-      <target bus="virtio" dev="vdb"/>
     </disk>
     <interface type="network">
       <mac address="52:54:00:a8:7a:0c"/>

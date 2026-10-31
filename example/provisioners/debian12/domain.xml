@@ -5,16 +5,18 @@
       <target name="org.qemu.guest_agent.0" type="virtio"/>
     </channel>
     <console type="pty"/>
+    <disk device="disk" type="volume">
+      <boot order="1"/>
+      <driver cache="none" discard="unmap" name="qemu" type="qcow2"/>
+      <serial>boot</serial>
+      <source pool="debian12" volume="debian12-boot.qcow2"/>
+      <target bus="virtio" dev="vda"/>
+    </disk>
     <disk device="cdrom" type="volume">
       <driver name="qemu" type="raw"/>
       <readonly/>
       <source pool="debian12" volume="debian12-seed.iso"/>
       <target bus="sata" dev="sda"/>
-    </disk>
-    <disk device="disk" type="volume">
-      <driver name="qemu" type="qcow2"/>
-      <source pool="debian12" volume="debian12-boot.qcow2"/>
-      <target bus="virtio" dev="vda"/>
     </disk>
     <interface type="network">
       <model type="virtio"/>
