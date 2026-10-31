@@ -1,0 +1,13 @@
+AUTOSTART := no
+LIBVIRT_DEFAULT_URI := qemu+ssh://root@hv1/system
+NAME := debian13-live
+POOLS := 
+SEED := 
+SSH_HOST := 
+SSH_USER := 
+VOLUME.default/debian-live-13.7.0-amd64-gnome.iso.backing := 
+VOLUME.default/debian-live-13.7.0-amd64-gnome.iso.capacity := upload
+VOLUME.default/debian-live-13.7.0-amd64-gnome.iso.download := https://cdimage.debian.org/debian-cd/13.7.0-live/amd64/iso-hybrid/debian-live-13.7.0-amd64-gnome.iso
+VOLUME.default/debian-live-13.7.0-amd64-gnome.iso.lifecyclePolicy := Shared
+VOLUME.default/debian-live-13.7.0-amd64-gnome.iso.upload := ../../.images/debian-live-13.7.0-amd64-gnome.iso
+VOLUMES := default/debian-live-13.7.0-amd64-gnome.iso

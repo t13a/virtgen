@@ -1,0 +1,39 @@
+<domain type="kvm">
+  <cpu mode="host-passthrough"/>
+  <devices>
+    <channel type="spicevmc">
+      <target name="com.redhat.spice.0" type="virtio"/>
+    </channel>
+    <channel type="unix">
+      <target name="org.qemu.guest_agent.0" type="virtio"/>
+    </channel>
+    <console type="pty"/>
+    <disk device="cdrom" type="volume">
+      <boot order="1"/>
+      <driver name="qemu" type="raw"/>
+      <readonly/>
+      <source pool="default" volume="debian-live-13.7.0-amd64-gnome.iso"/>
+      <target bus="sata" dev="sda"/>
+    </disk>
+    <graphics autoport="yes" type="spice"/>
+    <interface type="network">
+      <model type="virtio"/>
+      <source network="default"/>
+    </interface>
+    <serial type="pty"/>
+    <video>
+      <model type="qxl"/>
+    </video>
+  </devices>
+  <features>
+    <acpi/>
+    <apic/>
+  </features>
+  <memory unit="MiB">4096</memory>
+  <name>debian13-live</name>
+  <os>
+    <type arch="x86_64" machine="q35">hvm</type>
+  </os>
+  <uuid>6d73ecf2-2d75-bd8c-1171-7352e769b259</uuid>
+  <vcpu>2</vcpu>
+</domain>

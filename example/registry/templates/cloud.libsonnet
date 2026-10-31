@@ -1,6 +1,7 @@
-// Boots a cloud image with a NoCloud seed. Downloaded images are cached in imageDir,
-// relative to the directory of the VM, provisioners/<name>/.
-function(image, imageDir='../../.images') {
+// Boots a cloud image with a NoCloud seed.
+local imageVolume = import 'imageVolume.libsonnet';
+
+function(image, imageDir='../../.images') imageVolume(image, imageDir) + {
   local vm = self,
   local seedIso = vm.name + '-seed.iso',
   local bootVolume = vm.name + '-boot.qcow2',
@@ -11,14 +12,7 @@ function(image, imageDir='../../.images') {
     name: vm.name,
     target: { path: vm.node.poolDir + '/' + vm.name },
   } },
-  volumes: {
-    [vm.node.imagePool.name]: { [image.volume]: {
-      lifecyclePolicy:: 'Shared',
-      download:: image.url,
-      upload:: imageDir + '/' + image.volume,
-      name: image.volume,
-      target: { format: { '@type': image.format } },
-    } },
+  volumes+: {
     [vm.name]: {
       [bootVolume]: {
         name: bootVolume,

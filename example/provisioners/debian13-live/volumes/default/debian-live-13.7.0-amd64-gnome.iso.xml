@@ -1,0 +1,6 @@
+<volume>
+  <name>debian-live-13.7.0-amd64-gnome.iso</name>
+  <target>
+    <format type="raw"/>
+  </target>
+</volume>

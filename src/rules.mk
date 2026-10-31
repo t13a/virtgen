@@ -44,8 +44,10 @@ $(VIRSH) pool-autostart $(if $(filter yes,$(POOL.$(1).autostart)),,--disable) $(
 if ! $(VIRSH) pool-info $(1) | grep '^State: *running' >/dev/null; then $(VIRSH) pool-start --build $(1); fi;
 endef
 
+# A file is downloaded only when its volume is missing, since an image may be large and already on the node.
 define create_volume
 if ! $(VIRSH) vol-info --pool $(call pool_of,$(1)) $(call vol_of,$(1)) >/dev/null 2>&1; then \
+  $(if $(VOLUME.$(1).download),$(call download,$(1))) \
   $(call volume_xml,$(1)) | $(VIRSH) vol-create $(call pool_of,$(1)) /dev/stdin; \
   $(if $(VOLUME.$(1).upload),$(VIRSH) vol-upload --pool $(call pool_of,$(1)) $(call vol_of,$(1)) $(VOLUME.$(1).upload);) \
 fi;
@@ -75,6 +77,7 @@ endef
 up: create start
 down: delete
 
+# Fills the cache of downloads in advance. create downloads only for the volumes it creates.
 download:
 	$(foreach v,$(VOLUMES),$(if $(VOLUME.$(v).download),$(call download,$(v))))
 
@@ -85,7 +88,7 @@ endif
 
 # Creates only what is Shared. Run it for one VM at a time, and the VMs can then be created
 # in parallel: no two of them upload the same image at once.
-create-shared: download
+create-shared:
 	$(foreach p,$(call with_policy,POOL,Shared,$(POOLS)),$(call create_pool,$(p)))
 	$(foreach v,$(call with_policy,VOLUME,Shared,$(VOLUMES)),$(call create_volume,$(v)))
 
