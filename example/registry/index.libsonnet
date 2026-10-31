@@ -8,9 +8,13 @@
   nodes:: {
     'localhost': import 'nodes/localhost.libsonnet',
   },
+  secrets:: {
+    'login': import 'secrets/login.libsonnet',
+  },
   templates:: {
     'base': import 'templates/base.libsonnet',
     'cloud': import 'templates/cloud.libsonnet',
+    'cloudSshPassword': import 'templates/cloudSshPassword.libsonnet',
     'cloudStaticIp': import 'templates/cloudStaticIp.libsonnet',
     'dataDisk': import 'templates/dataDisk.libsonnet',
     'live': import 'templates/live.libsonnet',

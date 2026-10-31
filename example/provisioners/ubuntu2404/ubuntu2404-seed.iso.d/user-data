@@ -1,10 +1,13 @@
 #cloud-config
 chpasswd:
   expire: false
+  users:
+  - name: "ubuntu"
+    password: "$6$JYm6BeXpNKyWxC/T$NMjB91AUIBKpqz0PLCxKrDWmBJ0famH3RR4RKXifsd9wyAtdVM2X24WTS8P0c.ARLih060BZdkakXujCkuA391"
+    type: "hash"
 packages:
 - "qemu-guest-agent"
 - "git"
-password: "P@ssw0rd"
 runcmd:
 - "systemctl start qemu-guest-agent"
 ssh_pwauth: true

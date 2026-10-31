@@ -1,6 +1,4 @@
-// Logs in over SSH with a password: cloud-init gives it to the user of the image, and the provisioner
-// types it with sshpass. The password is stored in plain text, so this suits VMs for trials.
-function(password) {
-  userData+: { password: password, chpasswd: { expire: false }, ssh_pwauth: true },
-  ssh+: { password: password },
-}
+// Logs in over SSH with a password that the VM already has, such as the default one of an image.
+// The provisioner keeps it in the file sshpass, which sshpass types. For a cloud image,
+// cloudSshPassword also has cloud-init set it.
+function(password) { ssh+: { password: password } }

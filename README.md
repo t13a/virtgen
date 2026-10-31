@@ -35,6 +35,12 @@ $ make -C provisioners/debian13 down            # delete debian13, but keep what
 
 To create VMs in parallel, first run `make create-shared` for one VM at a time. It uploads what the VMs share, such as their images, so that no two VMs upload the same image at once.
 
+A VM that logs in with a password has it in plain text in only two places, so that a repository can encrypt just those: `registry/secrets/` in the example, and the file `sshpass` of its provisioner. cloud-init gets the hash of the password, which `registry/secrets/` holds next to the password:
+
+```console
+$ openssl passwd -6  # asks for a password and prints its hash
+```
+
 ## Layout
 
 - `src/` holds what goes into the image:
