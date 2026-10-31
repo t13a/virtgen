@@ -2,17 +2,11 @@
 local i = import '../index.libsonnet';
 local t = i.templates;
 
-function(image, imageDir='../../.images') t.sharedImage(image, imageDir) + {
+function(image, imageDir='../../.images') t.sharedImage(image, imageDir) + t.vmPool + {
   local vm = self,
   local seedIso = vm.name + '-seed.iso',
   local bootVolume = vm.name + '-boot.qcow2',
   seed:: seedIso,
-  pools: { [vm.name]: {
-    autostart:: true,
-    '@type': 'dir',
-    name: vm.name,
-    target: { path: vm.node.defaultPool.path + '/' + vm.name },
-  } },
   volumes+: {
     [vm.name]: {
       [bootVolume]: {

@@ -1,0 +1,7 @@
+<volume>
+  <capacity unit="GiB">20</capacity>
+  <name>debian13-desktop-boot.qcow2</name>
+  <target>
+    <format type="qcow2"/>
+  </target>
+</volume>

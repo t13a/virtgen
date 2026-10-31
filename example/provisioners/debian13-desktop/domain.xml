@@ -9,11 +9,17 @@
     </channel>
     <console type="pty"/>
     <disk device="cdrom" type="volume">
-      <boot order="1"/>
+      <boot order="2"/>
       <driver name="qemu" type="raw"/>
       <readonly/>
       <source pool="default" volume="debian-live-13.7.0-amd64-gnome.iso"/>
       <target bus="sata" dev="sda"/>
+    </disk>
+    <disk device="disk" type="volume">
+      <boot order="1"/>
+      <driver name="qemu" type="qcow2"/>
+      <source pool="debian13-desktop" volume="debian13-desktop-boot.qcow2"/>
+      <target bus="virtio" dev="vda"/>
     </disk>
     <graphics autoport="yes" type="spice"/>
     <interface type="network">
@@ -30,10 +36,10 @@
     <apic/>
   </features>
   <memory unit="MiB">4096</memory>
-  <name>debian13-live</name>
+  <name>debian13-desktop</name>
   <os>
     <type arch="x86_64" machine="q35">hvm</type>
   </os>
-  <uuid>6d73ecf2-2d75-bd8c-1171-7352e769b259</uuid>
+  <uuid>fe49ece8-35ff-289d-2104-4309c49b5f36</uuid>
   <vcpu>2</vcpu>
 </domain>

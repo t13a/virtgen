@@ -13,6 +13,7 @@
   },
   templates:: {
     'base': import 'templates/base.libsonnet',
+    'bootDisk': import 'templates/bootDisk.libsonnet',
     'cloud': import 'templates/cloud.libsonnet',
     'cloudSshPassword': import 'templates/cloudSshPassword.libsonnet',
     'cloudStaticIp': import 'templates/cloudStaticIp.libsonnet',
@@ -23,11 +24,12 @@
     'sshNoHostKeyChecking': import 'templates/sshNoHostKeyChecking.libsonnet',
     'sshPassword': import 'templates/sshPassword.libsonnet',
     'video': import 'templates/video.libsonnet',
+    'vmPool': import 'templates/vmPool.libsonnet',
     'vnc': import 'templates/vnc.libsonnet',
   },
   vms: {
     'debian12': (import 'vms/debian12.libsonnet') + { name: 'debian12' },
-    'debian13-live': (import 'vms/debian13-live.libsonnet') + { name: 'debian13-live' },
+    'debian13-desktop': (import 'vms/debian13-desktop.libsonnet') + { name: 'debian13-desktop' },
     'debian13': (import 'vms/debian13.libsonnet') + { name: 'debian13' },
     'ubuntu2404': (import 'vms/ubuntu2404.libsonnet') + { name: 'ubuntu2404' },
     'ubuntu2604': (import 'vms/ubuntu2604.libsonnet') + { name: 'ubuntu2604' },
