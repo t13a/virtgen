@@ -24,6 +24,7 @@
     'sshNoHostKeyChecking': import 'templates/sshNoHostKeyChecking.libsonnet',
     'sshPassword': import 'templates/sshPassword.libsonnet',
     'video': import 'templates/video.libsonnet',
+    'vmDisk': import 'templates/vmDisk.libsonnet',
     'vmPool': import 'templates/vmPool.libsonnet',
     'vnc': import 'templates/vnc.libsonnet',
   },
