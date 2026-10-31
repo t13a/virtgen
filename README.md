@@ -12,7 +12,7 @@ Build the image. It renders a registry and validates the result.
 $ podman build -t vm-provisioner-libvirt-ng src
 ```
 
-Render the registry in `registry/` into `provisioners/`. This also updates `registry/index.jsonnet`, which lists the files of the registry.
+Render the registry in `registry/` into `provisioners/`. This also updates `registry/index.libsonnet`, which lists the files of the registry.
 
 ```console
 $ podman run --rm --userns=keep-id -v ./registry:/src/registry -v ./provisioners:/src/provisioners vm-provisioner-libvirt-ng

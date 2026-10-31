@@ -1,7 +1,8 @@
 // Boots a cloud image with a NoCloud seed.
-local imageVolume = import 'imageVolume.libsonnet';
+local i = import '../index.libsonnet';
+local t = i.templates;
 
-function(image, imageDir='../../.images') imageVolume(image, imageDir) + {
+function(image, imageDir='../../.images') t.sharedImage(image, imageDir) + {
   local vm = self,
   local seedIso = vm.name + '-seed.iso',
   local bootVolume = vm.name + '-boot.qcow2',

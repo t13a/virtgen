@@ -16,7 +16,7 @@ PROVISIONERS_DIR ?= provisioners
 # gen empties PROVISIONERS_DIR, so an empty path must not become the root.
 $(foreach v,REGISTRY_DIR PROVISIONERS_DIR,$(if $(strip $($(v))),,$(error $(v) is empty)))
 
-INDEX := $(REGISTRY_DIR)/index.jsonnet
+INDEX := $(REGISTRY_DIR)/index.libsonnet
 
 .PHONY: gen config $(INDEX)
 gen: $(INDEX)

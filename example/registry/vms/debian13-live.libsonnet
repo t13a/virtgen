@@ -1,11 +1,11 @@
-local r = import '../index.jsonnet';
-local t = r.templates;
+local i = import '../index.libsonnet';
+local t = i.templates;
 
 t.base
-+ t.live(image=r.images.debianLive(version='13.7.0', flavor='gnome'))
++ t.live(image=i.images.debianLive(version='13.7.0', flavor='gnome'))
 + t.video(model='qxl')
 + t.spice
 + {
-  node: r.nodes.localhost,
+  node: i.nodes.localhost,
   domain+: { memory+: { '#text': 4096 }, vcpu: 2 },
 }

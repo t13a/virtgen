@@ -1,10 +1,10 @@
-local r = import '../index.jsonnet';
-local t = r.templates;
+local i = import '../index.libsonnet';
+local t = i.templates;
 
 t.base
-+ t.cloud(image=r.images.debianCloud(version='12'))
++ t.cloud(image=i.images.debianCloud(version='12'))
 + t.sshPassword(password='P@ssw0rd')
-+ t.noHostKeyChecking
++ t.sshNoHostKeyChecking
 + {
-  node: r.nodes.localhost,
+  node: i.nodes.localhost,
 }
