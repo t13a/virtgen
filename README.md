@@ -33,6 +33,8 @@ $ make -C provisioners/debian13 ssh CMD=uptime  # run a command over SSH; SSH_EX
 $ make -C provisioners/debian13 down            # delete debian13, but keep what is Reusable or Shared
 ```
 
+`up` creates the pools and volumes that are missing, but defines the domain every time. So a change to `domain.xml` takes effect from the next start of the VM, and its disks stay. Other changes take effect after `down` and `up`.
+
 To create VMs in parallel, first run `make create-shared` for one VM at a time. It uploads what the VMs share, such as their images, so that no two VMs upload the same image at once.
 
 A VM that logs in with a password has it in plain text in only two places, so that a repository can encrypt just those: `registry/secrets/` in the example, and the file `sshpass` of its provisioner. cloud-init gets the hash of the password, which `registry/secrets/` holds next to the password:

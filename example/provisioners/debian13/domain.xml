@@ -19,6 +19,7 @@
       <target bus="sata" dev="sda"/>
     </disk>
     <interface type="network">
+      <mac address="52:54:00:7a:2b:a5"/>
       <model type="virtio"/>
       <source network="default"/>
     </interface>

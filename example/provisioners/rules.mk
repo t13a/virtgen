@@ -95,6 +95,8 @@ create-shared:
 	$(foreach p,$(call with_policy,POOL,Shared,$(POOLS)),$(call create_pool,$(p)))
 	$(foreach v,$(call with_policy,VOLUME,Shared,$(VOLUMES)),$(call create_volume,$(v)))
 
+# Unlike the pools and volumes, the domain is defined every time. Its UUID and MAC address are fixed, so
+# this only applies a changed domain.xml, from the next start of the VM, and the guest keeps its disks.
 create: create-shared $(SEED)
 	$(foreach p,$(call with_policy,POOL,Disposable Reusable,$(POOLS)),$(call create_pool,$(p)))
 	$(foreach v,$(call with_policy,VOLUME,Disposable Reusable,$(VOLUMES)),$(call create_volume,$(v)))

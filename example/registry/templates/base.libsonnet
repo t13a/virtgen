@@ -2,8 +2,11 @@
 // `vm` is bound late to the final, fully merged VM, so templates can use values that the VM sets later.
 // The base is headless: the templates video, vnc and spice add a video device and remote displays.
 
-// A fixed UUID makes `virsh define` update the existing domain instead of failing.
+// A fixed UUID and MAC address keep the VM the same machine when `make up` defines its domain again:
+// virsh updates the domain instead of failing, and the network config that cloud-init wrote for the
+// MAC address of the first boot still matches. 52:54:00 is the range of QEMU.
 local uuid(s) = local h = std.md5(s); h[0:8] + '-' + h[8:12] + '-' + h[12:16] + '-' + h[16:20] + '-' + h[20:32];
+local mac(s) = local h = std.md5(s); '52:54:00:' + h[0:2] + ':' + h[2:4] + ':' + h[4:6];
 
 {
   local vm = self,
@@ -20,7 +23,12 @@ local uuid(s) = local h = std.md5(s); h[0:8] + '-' + h[8:12] + '-' + h[12:16] + 
     features: { acpi: {}, apic: {} },
     cpu: { '@mode': 'host-passthrough' },
     devices: {
-      'interface:default': { '@type': 'network', source: { '@network': vm.node.defaultNetwork.name }, model: { '@type': 'virtio' } },
+      'interface:default': {
+        '@type': 'network',
+        mac: { '@address': mac(vm.name) },
+        source: { '@network': vm.node.defaultNetwork.name },
+        model: { '@type': 'virtio' },
+      },
       serial: { '@type': 'pty' },
       console: { '@type': 'pty' },
       // The QEMU guest agent in the guest talks to the host through this port.

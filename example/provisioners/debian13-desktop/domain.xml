@@ -24,6 +24,7 @@
     </disk>
     <graphics autoport="yes" type="spice"/>
     <interface type="network">
+      <mac address="52:54:00:fe:49:ec"/>
       <model type="virtio"/>
       <source network="default"/>
     </interface>
