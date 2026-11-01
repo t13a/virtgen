@@ -9,4 +9,5 @@ RUN apk add --no-cache bash cloud-init libvirt-client libxml2-utils make && mkdi
 COPY --from=go-jsonnet /go/bin/jsonnet /usr/local/bin/
 WORKDIR /src
 COPY . .
+ENV REGISTRY_DIR=/mnt/registry PROVISIONERS_DIR=/mnt/provisioners
 ENTRYPOINT ["make"]
