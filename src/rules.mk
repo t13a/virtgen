@@ -58,14 +58,21 @@ if $(VIRSH) vol-info --pool $(call pool_of,$(1)) $(call vol_of,$(1)) >/dev/null 
 fi;
 endef
 
+# pool-delete removes the directory of the pool, so it runs only when no volume is left there.
 define delete_pool
-if $(VIRSH) pool-info $(1) 2>/dev/null | grep '^State: *running' >/dev/null; then $(VIRSH) pool-destroy $(1); fi; \
+if $(VIRSH) pool-info $(1) 2>/dev/null | grep '^State: *running' >/dev/null; then \
+  empty=$$(if $(VIRSH) vol-list $(1) | tail -n +3 | grep . >/dev/null; then echo no; else echo yes; fi); \
+  $(VIRSH) pool-destroy $(1); \
+  if [ $$empty = yes ]; then $(VIRSH) pool-delete $(1); fi; \
+fi; \
 if $(VIRSH) pool-info $(1) >/dev/null 2>&1; then $(VIRSH) pool-undefine $(1); fi;
 endef
 
-# Volumes go first, so a volume that stays in a deleted pool keeps its file.
+# The pools start first, because one that an earlier down deleted can still hold Reusable volumes
+# in its directory. Volumes go before pools, so a volume that stays in a deleted pool keeps its file.
 define teardown
 if $(VIRSH) dominfo $(NAME) >/dev/null 2>&1; then $(VIRSH) undefine --nvram $(NAME); fi
+$(foreach p,$(2),$(call create_pool,$(p)))
 $(foreach v,$(1),$(call delete_volume,$(v)))
 $(foreach p,$(2),$(call delete_pool,$(p)))
 rm -f $(SEED)

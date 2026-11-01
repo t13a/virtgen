@@ -6,6 +6,7 @@ on:
     tags: [ "v*" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -32,6 +33,30 @@ jobs:
             virtgen
           diff -r "$RUNNER_TEMP/provisioners" example/provisioners
           git diff --exit-code
+
+      # The end-to-end test runs for a tag, before the image is published, and when the workflow is
+      # run by hand. It creates VMs on a libvirt of the runner.
+      - name: Set up libvirt
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        run: |
+          test -e /dev/kvm
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libvirt-daemon-system qemu-system-x86 qemu-utils ovmf dnsmasq-base xorriso sshpass
+          sudo usermod -aG libvirt "$USER"
+          # The libvirt of the runner cannot load the AppArmor profiles of VMs, so they run without them.
+          echo 'security_driver = "none"' | sudo tee -a /etc/libvirt/qemu.conf >/dev/null
+          sudo systemctl restart libvirtd
+          if ! sudo virsh pool-info default >/dev/null 2>&1; then
+            sudo virsh pool-define-as default dir --target /var/lib/libvirt/images
+          fi
+          if ! sudo virsh pool-info default | grep '^State: *running' >/dev/null; then sudo virsh pool-start default; fi
+          if ! sudo virsh net-info default | grep '^Active: *yes' >/dev/null; then sudo virsh net-start default; fi
+
+      # sg gives the step the group libvirt, which the user joined after the step began.
+      - name: Test end to end
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        run: sg libvirt -c "make -C tests E2E_RUN='docker run --rm --user $(id -u):$(id -g)'"
 
       - name: Log in to the Container registry
         if: startsWith(github.ref, 'refs/tags/v')
