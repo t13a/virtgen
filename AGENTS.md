@@ -37,6 +37,8 @@ CI renders `example/registry` into an empty directory, so every file is validate
 $ podman run --rm --userns=keep-id -v ./example:/mnt virtgen
 ```
 
+A variable that a user may set, such as a command that the rules run, is an `=` assignment, as in the GNU Coding Standards. An argument of `make` overrides it, and the environment does not, so the same command works the same for everyone.
+
 After a change to `src/`, run the end-to-end test, which creates a VM on a real node and checks what each target of its provisioner does. [tests/README.md](tests/README.md) describes what it checks, and how to run it.
 
 Only a version tag, such as `v0.1.0`, publishes the image to `ghcr.io/t13a/virtgen`, under its version and as `latest`, once the end-to-end test passes on the runner. The test also runs when the workflow is run by hand from the Actions tab. Pull requests and pushes to `main` run only the render of the example.

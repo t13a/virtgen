@@ -4,17 +4,16 @@ SHELL := bash
 .SHELLFLAGS := -euo pipefail -c
 .NOTPARALLEL:
 
-E2E_URI ?= qemu:///system
-E2E_IMAGE ?= virtgen
-E2E_RUN ?= podman run --rm --userns=keep-id
-E2E_TIMEOUT ?= 900
+E2E_URI = qemu:///system
+E2E_IMAGE = virtgen
+E2E_RUN = podman run --rm --userns=keep-id
+E2E_TIMEOUT = 900
 
 NAME := virtgen-e2e
 IMAGE := debian-cloud-13-amd64.qcow2
 WORK := $(abspath work)
 PROV := $(WORK)/provisioners/$(NAME)
 export LIBVIRT_DEFAULT_URI := $(E2E_URI)
-export SSH_EXTRA_OPTS := -o LogLevel=ERROR
 
 STEPS := render up stop-and-up stop-force down up-after-down delete-all delete-all-after-down
 .PHONY: all clean $(STEPS)
@@ -22,7 +21,7 @@ STEPS := render up stop-and-up stop-force down up-after-down delete-all delete-a
 all: $(STEPS) clean
 
 # The provisioner runs as a user runs it, without the flags of this make.
-vm = env MAKEFLAGS= $(MAKE) -s -C $(PROV) LIBVIRT_DEFAULT_URI='$(E2E_URI)'
+vm = env MAKEFLAGS= $(MAKE) -s -C $(PROV) LIBVIRT_DEFAULT_URI='$(E2E_URI)' SSH_EXTRA_OPTS='-o LogLevel=ERROR'
 ready = timeout $(E2E_TIMEOUT) $(vm) wait-for-ready
 state = virsh domstate $(NAME) 2>/dev/null | sed '/^$$/d' || echo missing
 image = virsh vol-info --pool default $(IMAGE) >/dev/null 2>&1 && echo kept || echo gone

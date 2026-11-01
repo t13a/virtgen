@@ -5,13 +5,13 @@ SHELL := bash
 # writer can die of SIGPIPE and fail the pipe. `grep ... >/dev/null` reads to the end.
 .SHELLFLAGS := -euo pipefail -O nullglob -c
 
-VIRSH ?= virsh
-CURL ?= curl
-MKISOFS ?= xorriso -as mkisofs
-SSH ?= ssh
-SSH_EXTRA_OPTS ?=
+VIRSH = virsh
+CURL = curl
+MKISOFS = xorriso -as mkisofs
+SSH = ssh
+SSH_EXTRA_OPTS =
 # As long as libvirt-guests waits for a guest to shut down by default.
-STOP_TIMEOUT ?= 300
+STOP_TIMEOUT = 300
 
 export LIBVIRT_DEFAULT_URI
 

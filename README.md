@@ -290,7 +290,7 @@ The provisioner connects to the node by the URI of its node. To reach the node a
 $ make -C provisioners/debian13 up LIBVIRT_DEFAULT_URI=qemu+ssh://node.example/system
 ```
 
-The environment variable `LIBVIRT_DEFAULT_URI` does not change it, so that a value set for something else cannot send a VM to another node.
+`LIBVIRT_DEFAULT_URI`, `CMD`, `SSH_EXTRA_OPTS` and `STOP_TIMEOUT` take effect as arguments of `make` only, not as variables of the environment, so that a value set for something else cannot change what a provisioner does, or send a VM to another node.
 
 To change a VM, change the registry and render it, then:
 

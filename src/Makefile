@@ -5,12 +5,12 @@ SHELL := bash
 # The index is committed, so the order of its entries must not depend on the locale.
 export LC_ALL := C
 
-JSONNET ?= jsonnet
-VIRT_XML_VALIDATE ?= virt-xml-validate
-CLOUD_INIT ?= cloud-init
-REGISTRY_DIR ?= registry
-PROVISIONERS_DIR ?= provisioners
-CODE ?= render(registry)
+JSONNET = jsonnet
+VIRT_XML_VALIDATE = virt-xml-validate
+CLOUD_INIT = cloud-init
+REGISTRY_DIR = registry
+PROVISIONERS_DIR = provisioners
+CODE = render(registry)
 
 $(foreach v,REGISTRY_DIR PROVISIONERS_DIR,$(if $(strip $($(v))),,$(error $(v) is empty)))
 
