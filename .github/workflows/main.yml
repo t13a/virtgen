@@ -28,8 +28,8 @@ jobs:
         run: |
           mkdir "$RUNNER_TEMP/provisioners"
           docker run --rm --user "$(id -u):$(id -g)" \
-            -v "$PWD/example/registry:/src/registry" \
-            -v "$RUNNER_TEMP/provisioners:/src/provisioners" \
+            -v "$PWD/example/registry:/mnt/registry" \
+            -v "$RUNNER_TEMP/provisioners:/mnt/provisioners" \
             virtgen
           diff -r "$RUNNER_TEMP/provisioners" example/provisioners
           git diff --exit-code

@@ -70,10 +70,10 @@ $ git clone https://github.com/t13a/virtgen.git
 $ cd virtgen/example
 ```
 
-Render the registry into provisioners:
+Render the registry into provisioners. The generator reads `registry/` of the directory mounted at `/mnt`, and writes `provisioners/` next to it:
 
 ```console
-$ podman run --rm --userns=keep-id -v ./registry:/src/registry -v ./provisioners:/src/provisioners ghcr.io/t13a/virtgen
+$ podman run --rm --userns=keep-id -v .:/mnt ghcr.io/t13a/virtgen
 ```
 
 Create a VM, log in to it, and delete it. The first `up` downloads the cloud image of Debian.
@@ -207,19 +207,19 @@ $ virt-xml --connect test:///default --edit --cpu host-model --print-diff < prov
 
 ### Generator
 
-The generator renders the registry in `registry/` into `provisioners/`. It also updates `registry/index.libsonnet`, which lists the files of the registry. It validates the files that differ from the last render, and replaces `provisioners/` only when they are valid.
+The generator renders the registry in `registry/` of the directory mounted at `/mnt` into `provisioners/` next to it, which it creates if it is missing. It also updates `registry/index.libsonnet`, which lists the files of the registry. It validates the files that differ from the last render, and replaces `provisioners/` only when they are valid.
 
 ```console
-$ podman run --rm --userns=keep-id -v ./registry:/src/registry -v ./provisioners:/src/provisioners ghcr.io/t13a/virtgen
+$ podman run --rm --userns=keep-id -v .:/mnt ghcr.io/t13a/virtgen
 ```
 
 `print` evaluates `CODE`, Jsonnet code, and prints its value as JSON. It needs only the registry, and it neither validates nor writes files, which suits trying out a change. In `CODE`, `registry` is the registry, and `render` the function that turns it into the files of the provisioners. `CODE` is `render(registry)` by default, which prints those files as the generator would write them.
 
 ```console
-$ podman run --rm --userns=keep-id -v ./registry:/src/registry ghcr.io/t13a/virtgen print
-$ podman run --rm --userns=keep-id -v ./registry:/src/registry ghcr.io/t13a/virtgen print CODE='registry'
-$ podman run --rm --userns=keep-id -v ./registry:/src/registry ghcr.io/t13a/virtgen print CODE='registry.images.debianCloud("13")'
-$ podman run --rm --userns=keep-id -v ./registry:/src/registry ghcr.io/t13a/virtgen print CODE='render(registry)["debian13/domain.xml"]' | jq -r .
+$ podman run --rm --userns=keep-id -v .:/mnt ghcr.io/t13a/virtgen print
+$ podman run --rm --userns=keep-id -v .:/mnt ghcr.io/t13a/virtgen print CODE='registry'
+$ podman run --rm --userns=keep-id -v .:/mnt ghcr.io/t13a/virtgen print CODE='registry.images.debianCloud("13")'
+$ podman run --rm --userns=keep-id -v .:/mnt ghcr.io/t13a/virtgen print CODE='render(registry)["debian13/domain.xml"]' | jq -r .
 ```
 
 `registry` prints the VMs with their templates merged. Hidden fields are not printed, which is why `registry` shows only `vms`, but `CODE` can name one, such as `registry.vms.debian13.node`. A file prints as a JSON string, which `jq -r .` turns back into the file, as in the last line.

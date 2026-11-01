@@ -49,7 +49,7 @@ render:
 	fi
 	rm -rf $(WORK)
 	mkdir -p $(WORK)/provisioners
-	$(E2E_RUN) -v $(CURDIR)/registry:/src/registry -v $(WORK)/provisioners:/src/provisioners $(E2E_IMAGE) \
+	$(E2E_RUN) -v $(CURDIR)/registry:/mnt/registry -v $(WORK)/provisioners:/mnt/provisioners $(E2E_IMAGE) \
 	  > $(WORK)/render.log 2>&1 || { cat $(WORK)/render.log >&2; exit 1; }
 
 up:

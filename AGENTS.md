@@ -34,7 +34,7 @@ $ podman build -t virtgen src
 CI renders `example/registry` into an empty directory, so every file is validated, and requires the result to match `example/provisioners` and `example/registry/index.libsonnet`. So after a change to `src/` or `example/registry/`, render the example and commit the result with the change:
 
 ```console
-$ podman run --rm --userns=keep-id -v ./example/registry:/src/registry -v ./example/provisioners:/src/provisioners virtgen
+$ podman run --rm --userns=keep-id -v ./example:/mnt virtgen
 ```
 
 After a change to `src/`, run the end-to-end test, which creates a VM on a real node and checks what each target of its provisioner does. [tests/README.md](tests/README.md) describes what it checks, and how to run it.
