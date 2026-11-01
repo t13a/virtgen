@@ -1,35 +1,9 @@
-// The renderer: turns the VMs of a registry into provisioners, the files that rules.mk reads.
-// This file and rules.mk share one contract, so they change together, and the renderer
-// writes rules.mk next to the provisioners so that they run without the renderer.
-//
-// A VM is an object whose visible sections mirror the format of their readers:
-//   domain, pools, volumes             libvirt XML
-//   userData, metaData, networkConfig  cloud-init NoCloud files
-//   ssh                                user, host, password, and options for `make ssh`
-// ssh.options are ssh_config options, given as -o; an array becomes a comma-separated list. On a node
-// whose URI is qemu+ssh, the VM is reached through the host of the URI, unless options set ProxyJump.
-// Hidden fields carry what the XML cannot hold:
-//   VM      name, node (with uri), seed (the NoCloud ISO, relative to the VM directory)
-//   domain  autostart (default false)
-//   pool    autostart (default false), lifecyclePolicy
-//   volume  lifecyclePolicy, upload (a file relative to the VM directory), download (the URL of that file)
-// lifecyclePolicy says what becomes of a pool or volume when its VM goes:
-//   Disposable  `make down` deletes it (the default)
-//   Reusable    it survives `make down`, and the VM uses it again; `make delete-all` deletes it
-//   Shared      other VMs use it at the same time, so it always stays; `make create-shared` creates it
-// Any other hidden field inside a section must be null, which removes an inherited element or key.
-// So a misspelled field is an error instead of a silent default.
+// README.md describes the format of a VM, and AGENTS.md how this file and rules.mk fit together.
 
 // ---------------------------------------------------------------------------
-// Formats: XML, YAML and Make. Nothing here knows about VMs.
+// Formats: XML, YAML and Make
 // ---------------------------------------------------------------------------
 
-// XML is written from plain objects:
-//   '@attr'     an attribute
-//   '#text'     text content
-//   'elem:key'  a repeated element <elem>; ':key' only names it so templates can merge it
-//   [ ... ]     repeated elements without names
-// Hidden fields are not rendered.
 // std.manifestXmlJsonml is not used because it does not escape text or attributes.
 // Strings are joined with `+` because the `%` operator is very slow.
 local xmlEsc(s) = std.foldl(
@@ -60,14 +34,12 @@ local elem(name, v, depth) =
 
 local xml(root, v) = elem(root, v, 0);
 local yaml(v, header='') = header + std.manifestYamlDoc(v, quote_keys=false) + '\n';
-// Make reads `$` as a reference and `#` as a comment, so both are escaped.
 local mkEsc(s) = std.strReplace(std.strReplace(std.toString(s), '$', '$$'), '#', '\\#');
 local mk(vars) = std.join('', [k + ' := ' + mkEsc(vars[k]) + '\n' for k in std.objectFields(vars)]);
-// Single quotes keep a word whole in the shell.
 local shQuote(s) = "'" + std.strReplace(s, "'", "'\\''") + "'";
 
 // ---------------------------------------------------------------------------
-// Checks: each returns true or fails with a message that says where the problem is.
+// Checks
 // ---------------------------------------------------------------------------
 
 local sections = ['domain', 'metaData', 'networkConfig', 'pools', 'ssh', 'userData', 'volumes'];
@@ -97,14 +69,12 @@ local checkBool(where, o, k) =
 local checkName(where, s) =
   local bad = [c for c in std.stringChars(s) if std.member(' \t:=#$%/\\', c)];
   if std.length(bad) == 0 then true else fail(where, 'name must not contain ' + std.join('', bad));
-// An ssh_config keyword is a word, and its value a string, a number, or an array of strings.
 local checkSshOptions(where, o) =
   local isKeyword(k) = std.length([c for c in std.stringChars(k) if !std.member('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', c)]) == 0;
   local isValue(v) = std.isString(v) || std.isNumber(v) || (std.isArray(v) && std.all([std.isString(x) for x in v]));
   local bad = [k for k in std.objectFields(o) if !isKeyword(k) || !isValue(o[k])];
   if std.length(bad) == 0 then true else fail(where, 'not an ssh_config keyword with a string, number or array of strings: ' + std.join(', ', bad));
 
-// libvirt needs a capacity. Without one in the XML, rules.mk fills it in at run time.
 local capacityFrom(where, v) =
   if std.objectHas(v, 'capacity') then 'xml'
   else if get(v, 'upload', '') != '' then 'upload'
@@ -140,13 +110,12 @@ local check(name, vm, pools, vols) =
   ]));
 
 // ---------------------------------------------------------------------------
-// Provisioner variables: what rules.mk reads from vars.mk.
+// vars.mk
 // ---------------------------------------------------------------------------
 
 local yesNo(b) = if b then 'yes' else 'no';
 local record(prefix, fields) = { [prefix + '.' + k]: fields[k] for k in std.objectFields(fields) };
 
-// The VMs of a remote node sit on its network, so ssh jumps through the host that libvirt connects to.
 local jumpOf(uri) =
   local parts = std.splitLimit(uri, '://', 1);
   if std.length(parts) == 2 && std.endsWith(parts[0], '+ssh') then { ProxyJump: std.splitLimit(parts[1], '/', 1)[0] } else {};
@@ -157,7 +126,6 @@ local sshOpts(uri, options) =
 
 local vars(name, vm, pools, vols) =
   local ssh = get(vm, 'ssh', {});
-  // Backing volumes must exist before the volumes on top of them.
   local ordered = [x for x in vols if !std.objectHas(x.obj, 'backingStore')]
                   + [x for x in vols if std.objectHas(x.obj, 'backingStore')];
   {
@@ -182,7 +150,7 @@ local vars(name, vm, pools, vols) =
   }), vols, {});
 
 // ---------------------------------------------------------------------------
-// Files: the layout of a provisioner, the directory of one VM.
+// Files of a provisioner
 // ---------------------------------------------------------------------------
 
 local files(name, vm) =
@@ -209,8 +177,6 @@ local files(name, vm) =
   + (if std.objectHas(vm, 'metaData') then { [seed + '.d/meta-data']: yaml(vm.metaData) } else {})
   + (if std.objectHas(vm, 'networkConfig') then { [seed + '.d/network-config']: yaml(vm.networkConfig) } else {});
 
-// registry: the index of a registry, whose vms are { name: VM }.
-// Returns { 'name/path': content } and rules.mk for `jsonnet -S -m`.
 function(registry)
   local vms = registry.vms;
   local out = { [name]: files(name, vms[name]) for name in std.objectFields(vms) };

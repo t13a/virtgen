@@ -1,5 +1,5 @@
-// Boots a cloud image with a NoCloud seed. The boot disk starts as an overlay on the image, and its boot
-// order keeps the VM from booting another disk, such as a data disk with a boot loader.
+// The boot order of the boot disk keeps the VM from booting another disk, such as a data disk with a
+// boot loader.
 local i = import '../index.libsonnet';
 local t = i.templates;
 

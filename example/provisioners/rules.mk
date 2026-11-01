@@ -1,7 +1,3 @@
-# The rules of the provisioners: the Makefile of each VM includes its vars.mk, then this file.
-# The rules hold no VM data: everything comes from vars.mk and the files that main.jsonnet
-# writes next to it, so the two change together. The renderer copies this file next to the
-# directories of the VMs.
 .DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules --no-builtin-variables --warn-undefined-variables
 SHELL := bash
@@ -13,9 +9,8 @@ VIRSH ?= virsh
 CURL ?= curl
 MKISOFS ?= xorriso -as mkisofs
 SSH ?= ssh
-# More options for ssh at run time, such as SSH_EXTRA_OPTS=-v. They come after SSH_OPTS of vars.mk.
 SSH_EXTRA_OPTS ?=
-# Seconds that stop waits for the guest to shut down, as long as libvirt-guests waits by default.
+# As long as libvirt-guests waits for a guest to shut down by default.
 STOP_TIMEOUT ?= 300
 
 export LIBVIRT_DEFAULT_URI
@@ -23,18 +18,15 @@ export LIBVIRT_DEFAULT_URI
 # True while the domain is on: running, shutting down or paused. A missing domain is off.
 is_on = $(VIRSH) domstate $(NAME) 2>/dev/null | grep -Ev '^(shut off|crashed)?$$' >/dev/null
 
-# A VM that logs in with a password has the file sshpass, and sshpass -f types the password from it.
 ssh_cmd = $(if $(wildcard sshpass),sshpass -f sshpass )$(SSH) $(SSH_OPTS) $(SSH_EXTRA_OPTS)
 ssh_target = $(or $(SSH_USER),$$(id -un))@$(or $(SSH_HOST),$$($(VIRSH) domifaddr $(NAME) | grep -Eo '[0-9.]+/[0-9]+' | cut -d/ -f1 | head -n1))
 
-# Volumes are named POOL/VOLUME, and their records in vars.mk are VOLUME.POOL/VOLUME.*.
 pool_of = $(word 1,$(subst /, ,$(1)))
 vol_of = $(word 2,$(subst /, ,$(1)))
-# $(call with_policy,VOLUME|POOL,POLICIES,NAMES): the names whose lifecyclePolicy is one of POLICIES.
 with_policy = $(foreach x,$(3),$(if $(filter $(2),$($(1).$(x).lifecyclePolicy)),$(x)))
 
-# libvirt requires a capacity. When the XML has none, use the size of the uploaded
-# file or the capacity of the backing volume, as Makefile.j2 of v1alpha1 did.
+# libvirt requires a capacity, which only the file tells for a volume that is uploaded or has a
+# backing store.
 capacity_of = $(if $(filter upload,$(VOLUME.$(1).capacity)),stat -Lc%s $(VOLUME.$(1).upload),$(VIRSH) vol-dumpxml $(VOLUME.$(1).backing) --xpath '/volume/capacity/text()')
 volume_xml = $(if $(filter xml,$(VOLUME.$(1).capacity)),cat volumes/$(1).xml,sed "s|</volume>|  <capacity unit='bytes'>$$($(call capacity_of,$(1)))</capacity>\n</volume>|" volumes/$(1).xml)
 
@@ -52,7 +44,6 @@ $(VIRSH) pool-autostart $(if $(filter yes,$(POOL.$(1).autostart)),,--disable) $(
 if ! $(VIRSH) pool-info $(1) | grep '^State: *running' >/dev/null; then $(VIRSH) pool-start --build $(1); fi;
 endef
 
-# A file is downloaded only when its volume is missing, since an image may be large and already on the node.
 define create_volume
 if ! $(VIRSH) vol-info --pool $(call pool_of,$(1)) $(call vol_of,$(1)) >/dev/null 2>&1; then \
   $(if $(VOLUME.$(1).download),$(call download,$(1))) \
@@ -72,7 +63,6 @@ if $(VIRSH) pool-info $(1) 2>/dev/null | grep '^State: *running' >/dev/null; the
 if $(VIRSH) pool-info $(1) >/dev/null 2>&1; then $(VIRSH) pool-undefine $(1); fi;
 endef
 
-# $(call teardown,VOLUMES,POOLS): undefine the domain, then delete the given volumes and pools.
 # Volumes go first, so a volume that stays in a deleted pool keeps its file.
 define teardown
 if $(VIRSH) dominfo $(NAME) >/dev/null 2>&1; then $(VIRSH) undefine --nvram $(NAME); fi
@@ -85,7 +75,6 @@ endef
 up: create start
 down: delete
 
-# Fills the cache of downloads in advance. create downloads only for the volumes it creates.
 download:
 	$(foreach v,$(VOLUMES),$(if $(VOLUME.$(v).download),$(call download,$(v))))
 
@@ -94,14 +83,11 @@ $(SEED): $(wildcard $(SEED).d/*)
 	$(MKISOFS) -quiet -output $@ -volid cidata -joliet -rock $(SEED).d
 endif
 
-# Creates only what is Shared. Run it for one VM at a time, and the VMs can then be created
-# in parallel: no two of them upload the same image at once.
 create-shared:
 	$(foreach p,$(call with_policy,POOL,Shared,$(POOLS)),$(call create_pool,$(p)))
 	$(foreach v,$(call with_policy,VOLUME,Shared,$(VOLUMES)),$(call create_volume,$(v)))
 
-# Unlike the pools and volumes, the domain is defined every time. Its UUID and MAC address are fixed, so
-# this only applies a changed domain.xml, from the next start of the VM, and the guest keeps its disks.
+# Unlike the pools and volumes, the domain is defined every time: its UUID is fixed, so virsh updates it.
 create: create-shared $(SEED)
 	$(foreach p,$(call with_policy,POOL,Disposable Reusable,$(POOLS)),$(call create_pool,$(p)))
 	$(foreach v,$(call with_policy,VOLUME,Disposable Reusable,$(VOLUMES)),$(call create_volume,$(v)))
@@ -111,11 +97,7 @@ create: create-shared $(SEED)
 start:
 	if ! $(VIRSH) domstate $(NAME) | grep running >/dev/null; then $(VIRSH) start $(NAME); fi
 
-# stop asks the guest to shut down, through its guest agent or the power button, and waits for it.
-# The request fails when the guest goes off on its own meanwhile, so only the wait decides. A guest
-# that does not shut down in STOP_TIMEOUT seconds stays on. stop-force cuts its power, as delete and
-# delete-all do, so the guest may lose what it has not written to its disks. Run stop before delete
-# when a Reusable disk of the VM should keep all of it.
+# virsh shutdown fails when the guest goes off on its own meanwhile, so only the wait decides.
 stop:
 	if $(is_on); then $(VIRSH) shutdown $(NAME) || true; fi
 	for i in $$(seq $(STOP_TIMEOUT)); do if ! $(is_on); then exit 0; fi; sleep 1; done; \
@@ -124,8 +106,6 @@ stop:
 stop-force:
 	if $(is_on); then $(VIRSH) destroy $(NAME) || ! $(is_on); fi
 
-# delete deletes what is Disposable, and delete-all what is Reusable too. What is Shared always
-# stays, because other VMs may use it, for example an image as the backing file of their disks.
 delete: stop-force
 	$(call teardown,$(call with_policy,VOLUME,Disposable,$(VOLUMES)),$(call with_policy,POOL,Disposable,$(POOLS)))
 
@@ -143,7 +123,6 @@ ssh: override export CMD := $(value CMD)
 ssh:
 	@$(ssh_cmd) $(ssh_target) $(if $(CMD),"$$CMD")
 
-# Wait for SSH, then report how cloud-init finished: exit 0 done, 2 degraded, 1 error.
 wait-for-ready:
 	until $(ssh_cmd) -o ConnectTimeout=3 $(ssh_target) true 2>/dev/null; do sleep 3; done
 	$(ssh_cmd) $(ssh_target) cloud-init status --wait

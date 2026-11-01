@@ -1,4 +1,3 @@
-// Boots a live image from a CD-ROM. Without bootDisk the VM has no disk, so nothing survives a shutdown.
 local i = import '../index.libsonnet';
 local t = i.templates;
 
