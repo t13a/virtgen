@@ -37,7 +37,7 @@ CI renders `example/registry` into an empty directory, so every file is validate
 $ podman run --rm --userns=keep-id -v ./example/registry:/src/registry -v ./example/provisioners:/src/provisioners virtgen
 ```
 
-A push to `main` publishes the image to `ghcr.io/t13a/virtgen` as `latest`, and a tag `v*` publishes it under its version.
+Only a version tag, such as `v0.1.0`, publishes the image to `ghcr.io/t13a/virtgen`, under its version and as `latest`. Pull requests and pushes to `main` only test it.
 
 ## Comments
 

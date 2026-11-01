@@ -105,7 +105,7 @@ $ podman run --rm --userns=keep-id -v ./registry:/src/registry ghcr.io/t13a/virt
 
 With Docker, give `--user "$(id -u):$(id -g)"` instead of `--userns=keep-id`.
 
-Every push to `main` publishes the image as `latest`.
+Each release publishes the image under its version, such as `0.1.0` for the tag `v0.1.0`, and as `latest`.
 
 ### Registry
 
