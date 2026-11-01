@@ -117,7 +117,7 @@ A VM is an object whose visible sections mirror the formats of their readers:
 | `userData`, `metaData`, `networkConfig` | cloud-init NoCloud files |
 | `ssh` | `user`, `host`, `password` and `options` for `make ssh` |
 
-`ssh.options` are ssh_config options, given to ssh as `-o`; an array becomes a comma-separated list. On a node whose URI is `qemu+ssh`, ssh reaches the VM through the host of the URI, unless the options set `ProxyJump`.
+`ssh.options` are ssh_config options, given to ssh as `-o`; an array becomes a comma-separated list. When the provisioner reaches the node through a `qemu+ssh` URI, ssh reaches the VM through the host of the URI, unless the options set `ProxyJump`.
 
 XML is written as objects:
 
@@ -154,7 +154,7 @@ Run the targets with `make -C provisioners/<VM> <target>`:
 |---|---|
 | `up` | Creates what is missing of the VM, defines its domain, and starts it. |
 | `wait-for-ready` | Waits until SSH works and cloud-init has finished. |
-| `ssh` | Logs in to the VM, or runs `CMD` on it, such as `CMD='uptime; df -h'`. `SSH_EXTRA_OPTS` adds options to ssh, such as `-v`. |
+| `ssh` | Logs in to the VM, or runs `CMD` on it, such as `CMD='uptime; df -h'`. `SSH_EXTRA_OPTS` gives ssh more options, such as `-v`, which win over those of the VM. |
 | `console` | Attaches to the serial console of the VM. `Ctrl+]` detaches. |
 | `stop` | Asks the guest to shut down, and waits up to `STOP_TIMEOUT` seconds, 300 by default. |
 | `stop-force` | Cuts the power of the VM, so the guest may lose what it has not written to its disks. |
@@ -162,6 +162,14 @@ Run the targets with `make -C provisioners/<VM> <target>`:
 | `delete-all` | Cuts the power, and deletes the VM except what is Shared. |
 | `create-shared` | Creates only what is Shared, such as the images. |
 | `download` | Downloads the images ahead of time. `up` downloads what it needs. |
+
+The provisioner connects to the node by the URI of its node. To reach the node another way, such as from another machine, give the URI to make, and ssh reaches the VM through the host of a `qemu+ssh` URI too:
+
+```console
+$ make -C provisioners/debian13 up LIBVIRT_DEFAULT_URI=qemu+ssh://node.example/system
+```
+
+The environment variable `LIBVIRT_DEFAULT_URI` does not change it, so that a value set for something else cannot send a VM to another node.
 
 To change a VM, change the registry and render it, then:
 

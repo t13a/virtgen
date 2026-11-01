@@ -3,3 +3,4 @@
 /example/provisioners/.tmp/
 /tests/work/
 /tests/.images/
+/tests/registry/index.libsonnet

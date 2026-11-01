@@ -114,11 +114,7 @@ local check(name, vm, pools, vols) =
 local yesNo(b) = if b then 'yes' else 'no';
 local record(prefix, fields) = { [prefix + '.' + k]: fields[k] for k in std.objectFields(fields) };
 
-local jumpOf(uri) =
-  local parts = std.splitLimit(uri, '://', 1);
-  if std.length(parts) == 2 && std.endsWith(parts[0], '+ssh') then { ProxyJump: std.splitLimit(parts[1], '/', 1)[0] } else {};
-local sshOpts(uri, options) =
-  local o = jumpOf(uri) + options;
+local sshOpts(o) =
   local value(v) = if std.isArray(v) then std.join(',', v) else std.toString(v);
   std.join(' ', ['-o ' + shQuote(k + '=' + value(o[k])) for k in std.objectFields(o)]);
 
@@ -133,7 +129,7 @@ local vars(name, vm, pools, vols) =
     SEED: get(vm, 'seed', ''),
     SSH_USER: get(ssh, 'user', ''),
     SSH_HOST: get(ssh, 'host', ''),
-    SSH_OPTS: sshOpts(vm.node.uri, get(ssh, 'options', {})),
+    SSH_OPTS: sshOpts(get(ssh, 'options', {})),
     POOLS: std.join(' ', std.objectFields(pools)),
     VOLUMES: std.join(' ', [x.id for x in ordered]),
   } + std.foldl(function(acc, p) acc + record('POOL.' + p, {

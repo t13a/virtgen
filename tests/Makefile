@@ -22,7 +22,7 @@ STEPS := render up stop-and-up stop-force down up-after-down delete-all delete-a
 all: $(STEPS) clean
 
 # The provisioner runs as a user runs it, without the flags of this make.
-vm = env MAKEFLAGS= $(MAKE) -s -C $(PROV)
+vm = env MAKEFLAGS= $(MAKE) -s -C $(PROV) LIBVIRT_DEFAULT_URI='$(E2E_URI)'
 ready = timeout $(E2E_TIMEOUT) $(vm) wait-for-ready
 state = virsh domstate $(NAME) 2>/dev/null | sed '/^$$/d' || echo missing
 image = virsh vol-info --pool default $(IMAGE) >/dev/null 2>&1 && echo kept || echo gone
@@ -49,11 +49,8 @@ render:
 	fi
 	rm -rf $(WORK)
 	mkdir -p $(WORK)/provisioners .images
-	cp -r registry $(WORK)/registry
-	mkdir $(WORK)/registry/nodes
-	echo "{ uri: '$(E2E_URI)' }" > $(WORK)/registry/nodes/e2e.libsonnet
 	ln -s $(CURDIR)/.images $(WORK)/provisioners/.images
-	$(E2E_RUN) -v $(WORK)/registry:/src/registry -v $(WORK)/provisioners:/src/provisioners $(E2E_IMAGE) \
+	$(E2E_RUN) -v $(CURDIR)/registry:/src/registry -v $(WORK)/provisioners:/src/provisioners $(E2E_IMAGE) \
 	  > $(WORK)/render.log 2>&1 || { cat $(WORK)/render.log >&2; exit 1; }
 
 up:

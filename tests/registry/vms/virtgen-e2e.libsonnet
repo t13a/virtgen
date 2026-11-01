@@ -17,7 +17,8 @@ local disk(volume, dev) = {
 
 {
   name:: name,
-  node:: import '../nodes/e2e.libsonnet',
+  // tests/Makefile gives make the URI of E2E_URI instead.
+  node:: { uri: 'qemu:///system' },
   seed:: seed,
   domain: {
     '@type': 'kvm',

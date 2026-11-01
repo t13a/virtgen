@@ -18,7 +18,13 @@ export LIBVIRT_DEFAULT_URI
 # True while the domain is on: running, shutting down or paused. A missing domain is off.
 is_on = $(VIRSH) domstate $(NAME) 2>/dev/null | grep -Ev '^(shut off|crashed)?$$' >/dev/null
 
-ssh_cmd = $(if $(wildcard sshpass),sshpass -f sshpass )$(SSH) $(SSH_OPTS) $(SSH_EXTRA_OPTS)
+# The VMs of a node behind qemu+ssh sit on its network, so ssh jumps through the host of the URI. That
+# is the URI of this run, which an argument of make can change, so the jump is not in vars.mk.
+uri_scheme = $(firstword $(subst ://, ,$(LIBVIRT_DEFAULT_URI)))
+uri_host = $(firstword $(subst /, ,$(word 2,$(subst ://, ,$(LIBVIRT_DEFAULT_URI)))))
+ssh_jump = $(if $(filter %+ssh,$(uri_scheme)),-o 'ProxyJump=$(uri_host)')
+# ssh takes the first value of an option, so SSH_EXTRA_OPTS wins over SSH_OPTS, and both over the jump.
+ssh_cmd = $(if $(wildcard sshpass),sshpass -f sshpass )$(SSH) $(SSH_EXTRA_OPTS) $(SSH_OPTS) $(ssh_jump)
 ssh_target = $(or $(SSH_USER),$$(id -un))@$(or $(SSH_HOST),$$($(VIRSH) domifaddr $(NAME) | grep -Eo '[0-9.]+/[0-9]+' | cut -d/ -f1 | head -n1))
 
 pool_of = $(word 1,$(subst /, ,$(1)))
