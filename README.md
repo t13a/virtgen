@@ -97,11 +97,15 @@ The generator renders the registry in `registry/` into `provisioners/`. It also 
 $ podman run --rm --userns=keep-id -v ./registry:/src/registry -v ./provisioners:/src/provisioners ghcr.io/t13a/virtgen
 ```
 
-`config` prints the VMs as the generator sees them, with their templates merged. It needs only the registry.
+`print` prints the value of `CODE`, a Jsonnet expression, as JSON. It needs only the registry. In `CODE`, `registry` is the registry, and `render` the function that turns it into the files of the provisioners. `CODE` is `registry` by default, which prints the VMs as the generator sees them, with their templates merged.
 
 ```console
-$ podman run --rm --userns=keep-id -v ./registry:/src/registry ghcr.io/t13a/virtgen config
+$ podman run --rm --userns=keep-id -v ./registry:/src/registry ghcr.io/t13a/virtgen print
+$ podman run --rm --userns=keep-id -v ./registry:/src/registry ghcr.io/t13a/virtgen print CODE='registry.images.debianCloud("13")'
+$ podman run --rm --userns=keep-id -v ./registry:/src/registry ghcr.io/t13a/virtgen print CODE='render(registry)'
 ```
+
+Hidden fields are not printed, which is why `registry` shows only `vms`, but `CODE` can name one, such as `registry.vms.debian13.node`. A file of `render(registry)`, such as `render(registry)["debian13/domain.xml"]`, prints as a JSON string, which `jq -r .` turns back into the file.
 
 With Docker, give `--user "$(id -u):$(id -g)"` instead of `--userns=keep-id`.
 
