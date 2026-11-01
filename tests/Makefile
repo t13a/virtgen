@@ -48,8 +48,7 @@ render:
 	  echo '$(NAME) exists on $(E2E_URI). make clean deletes it if a run of this test left it.' >&2; exit 1; \
 	fi
 	rm -rf $(WORK)
-	mkdir -p $(WORK)/provisioners .images
-	ln -s $(CURDIR)/.images $(WORK)/provisioners/.images
+	mkdir -p $(WORK)/provisioners
 	$(E2E_RUN) -v $(CURDIR)/registry:/src/registry -v $(WORK)/provisioners:/src/provisioners $(E2E_IMAGE) \
 	  > $(WORK)/render.log 2>&1 || { cat $(WORK)/render.log >&2; exit 1; }
 
