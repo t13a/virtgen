@@ -1,11 +1,9 @@
-// The base of every VM. Templates are mixins; see src/main.jsonnet for the sections and hidden fields.
-// `vm` is bound late to the final, fully merged VM, so templates can use values that the VM sets later.
 // The base is headless: the templates video, vnc and spice add a video device and remote displays.
 
 // A fixed UUID and MAC address keep the VM the same machine when `make up` defines its domain again:
 // virsh updates the domain instead of failing, and the network config that cloud-init wrote for the
-// MAC address of the first boot still matches. Both come from the name of the VM, and a VM whose UUID
-// or MAC address collides with another's sets uuid or mac. 52:54:00 is the range of QEMU.
+// MAC address of the first boot still matches. A VM whose UUID or MAC address collides with another's
+// sets uuid or mac. 52:54:00 is the range of QEMU.
 local uuidOf(s) = local h = std.md5(s); h[0:8] + '-' + h[8:12] + '-' + h[12:16] + '-' + h[16:20] + '-' + h[20:32];
 local macOf(s) = local h = std.md5(s); '52:54:00:' + h[0:2] + ':' + h[2:4] + ':' + h[4:6];
 
@@ -34,7 +32,6 @@ local macOf(s) = local h = std.md5(s); '52:54:00:' + h[0:2] + ':' + h[2:4] + ':'
       },
       serial: { '@type': 'pty' },
       console: { '@type': 'pty' },
-      // The QEMU guest agent in the guest talks to the host through this port.
       'channel:org.qemu.guest_agent.0': { '@type': 'unix', target: { '@type': 'virtio', '@name': 'org.qemu.guest_agent.0' } },
     },
   },

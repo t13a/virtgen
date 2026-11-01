@@ -1,5 +1,4 @@
-// A data disk. By default it survives `make down`; `make delete-all` removes it.
-// A VM with more than one data disk gives each its own name.
+// A VM with more than one data disk gives each its own name, or they merge into one.
 local i = import '../index.libsonnet';
 local t = i.templates;
 
