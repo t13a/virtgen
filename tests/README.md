@@ -9,7 +9,7 @@ It tests the renderer and `src/rules.mk`, not the example. Its registry, `regist
 The test needs:
 
 - **The generator:** its image, built as `virtgen` with `podman build -t virtgen src`.
-- **The commands of the provisioners:** GNU Make, Bash, virsh, xorriso, curl, ssh, and sshpass.
+- **The commands of the provisioners:** GNU Make, Bash, `virsh`, `xorriso`, `curl`, `ssh`, and `sshpass`.
 - **A node:** one with OVMF, the network `default`, and the pool `default` at `/var/lib/libvirt/images`, both active. The local libvirt or [libvirt-container](https://github.com/t13a/libvirt-container) will do.
 
 ```console
@@ -19,7 +19,7 @@ $ make -C tests E2E_URI='qemu+ssh://libvirt-user@127.0.0.1:2222/system?no_verify
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `E2E_URI` | `qemu:///system` | The node. The registry renders for `qemu:///system`, and the test gives this URI to make, as a user can. |
+| `E2E_URI` | `qemu:///system` | The node. The registry renders for `qemu:///system`, and the test gives this URI to `make`, as a user can. |
 | `E2E_IMAGE` | `virtgen` | The image of the generator. |
 | `E2E_RUN` | `podman run --rm --userns=keep-id` | How to run the image, so that it writes files as the current user. With Docker, `docker run --rm --user UID:GID`. |
 | `E2E_TIMEOUT` | `900` | Seconds that each `wait-for-ready` may take. |
@@ -46,7 +46,7 @@ $ make -C tests E2E_URI='qemu+ssh://libvirt-user@127.0.0.1:2222/system?no_verify
   - The data disk states 1 GiB in its XML.
 - **A fixed UUID and MAC address:** they let `up` define the domain again and keep the network of the guest.
 - **UEFI:** under the BIOS, GRUB of the image resets the VM over and over without a video device.
-- **A login with a password:** ssh goes through sshpass.
+- **A login with a password:** `ssh` goes through `sshpass`.
 
 ## The steps
 
@@ -70,7 +70,7 @@ The steps:
 2. **`up`** runs `up` and `wait-for-ready`. `wait-for-ready` fails unless cloud-init finished without an error, so it also shows that the seed works. The step then checks:
    - that the VM runs;
    - that `left` lists the boot disk, the data disk and the seed;
-   - that `ssh` runs a `CMD` of two lines, `echo "$HOME"` and `echo two`, and prints `/home/debian two`. So the guest expands `$HOME`, not make or the local shell.
+   - that `ssh` runs a `CMD` of two lines, `echo "$HOME"` and `echo two`, and prints `/home/debian two`. So the guest expands `$HOME`, not `make` or the local shell.
 
    Last, it writes the token.
 3. **`stop-and-up`** runs `stop`, then `up` again, which defines the domain again.
