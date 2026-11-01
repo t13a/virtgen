@@ -11,7 +11,6 @@ E2E_TIMEOUT ?= 900
 
 NAME := virtgen-e2e
 IMAGE := debian-cloud-13-amd64.qcow2
-REPO := $(abspath ..)
 WORK := $(abspath work)
 PROV := $(WORK)/provisioners/$(NAME)
 export LIBVIRT_DEFAULT_URI := $(E2E_URI)
@@ -49,11 +48,11 @@ render:
 	  echo '$(NAME) exists on $(E2E_URI). make clean deletes it if a run of this test left it.' >&2; exit 1; \
 	fi
 	rm -rf $(WORK)
-	mkdir -p $(WORK)/provisioners $(REPO)/example/provisioners/.images
-	cp -r $(REPO)/example/registry $(WORK)/registry
-	cp $(NAME).libsonnet $(WORK)/registry/vms/
-	echo "(import 'localhost.libsonnet') + { uri: '$(E2E_URI)' }" > $(WORK)/registry/nodes/e2e.libsonnet
-	ln -s $(REPO)/example/provisioners/.images $(WORK)/provisioners/.images
+	mkdir -p $(WORK)/provisioners .images
+	cp -r registry $(WORK)/registry
+	mkdir $(WORK)/registry/nodes
+	echo "{ uri: '$(E2E_URI)' }" > $(WORK)/registry/nodes/e2e.libsonnet
+	ln -s $(CURDIR)/.images $(WORK)/provisioners/.images
 	$(E2E_RUN) -v $(WORK)/registry:/src/registry -v $(WORK)/provisioners:/src/provisioners $(E2E_IMAGE) \
 	  > $(WORK)/render.log 2>&1 || { cat $(WORK)/render.log >&2; exit 1; }
 
