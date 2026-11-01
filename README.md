@@ -97,15 +97,16 @@ The generator renders the registry in `registry/` into `provisioners/`. It also 
 $ podman run --rm --userns=keep-id -v ./registry:/src/registry -v ./provisioners:/src/provisioners ghcr.io/t13a/virtgen
 ```
 
-`print` prints the value of `CODE`, a Jsonnet expression, as JSON. It needs only the registry. In `CODE`, `registry` is the registry, and `render` the function that turns it into the files of the provisioners. `CODE` is `registry` by default, which prints the VMs as the generator sees them, with their templates merged.
+`print` evaluates `CODE`, Jsonnet code, and prints its value as JSON. It needs only the registry, and it neither validates nor writes files, which suits trying out a change. In `CODE`, `registry` is the registry, and `render` the function that turns it into the files of the provisioners. `CODE` is `render(registry)` by default, which prints those files as the generator would write them.
 
 ```console
 $ podman run --rm --userns=keep-id -v ./registry:/src/registry ghcr.io/t13a/virtgen print
+$ podman run --rm --userns=keep-id -v ./registry:/src/registry ghcr.io/t13a/virtgen print CODE='registry'
 $ podman run --rm --userns=keep-id -v ./registry:/src/registry ghcr.io/t13a/virtgen print CODE='registry.images.debianCloud("13")'
-$ podman run --rm --userns=keep-id -v ./registry:/src/registry ghcr.io/t13a/virtgen print CODE='render(registry)'
+$ podman run --rm --userns=keep-id -v ./registry:/src/registry ghcr.io/t13a/virtgen print CODE='render(registry)["debian13/domain.xml"]' | jq -r .
 ```
 
-Hidden fields are not printed, which is why `registry` shows only `vms`, but `CODE` can name one, such as `registry.vms.debian13.node`. A file of `render(registry)`, such as `render(registry)["debian13/domain.xml"]`, prints as a JSON string, which `jq -r .` turns back into the file.
+`registry` prints the VMs with their templates merged. Hidden fields are not printed, which is why `registry` shows only `vms`, but `CODE` can name one, such as `registry.vms.debian13.node`. A file prints as a JSON string, which `jq -r .` turns back into the file, as in the last line.
 
 With Docker, give `--user "$(id -u):$(id -g)"` instead of `--userns=keep-id`.
 
