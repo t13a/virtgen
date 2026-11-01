@@ -1,6 +1,6 @@
 # virtgen
 
-virtgen renders a registry of VMs, written in Jsonnet, into provisioners: the libvirt XML and the cloud-init files of each VM, plus a Makefile that creates it with virsh. [README.md](README.md) describes how to use it, how VMs are operated, and the format of a registry.
+virtgen renders a registry of VMs, written in Jsonnet, into provisioners: the libvirt XML and the cloud-init files of each VM, plus a Makefile that creates it with virsh. [README.md](README.md) describes its goals and concepts, and how to use it.
 
 Write all documentation, code comments, commit messages, and GitHub issues and pull requests in English.
 
@@ -10,6 +10,14 @@ Write all documentation, code comments, commit messages, and GitHub issues and p
 - **The renderer owns the formats, and the registry owns the VMs.** `src/main.jsonnet` knows libvirt XML, cloud-init, Make, and the sections of a VM, but not what a VM needs. Add a feature as a template, as UEFI, the options of the disks, and the fixed UUID and MAC address were added.
 - **Jsonnet decides, and Make carries out.** Work out at render time whatever can be, and let `src/rules.mk` only run what `vars.mk` says, as the source of a capacity, the order of the volumes, and ProxyJump from the node URI already are. Logic in Make and the shell has caused most of the bugs.
 - **Depend on first-party interfaces.** virtgen reaches libvirt through its XML and virsh, and the guest through cloud-init's NoCloud datasource, and owns the small glue between them. It does not rent third-party adaptors, such as a Terraform provider, which would need maintenance whenever they change.
+
+## Layout
+
+- `src/` holds what goes into the image:
+  - `main.jsonnet` renders the VMs into provisioners, and checks them against the format in README.md.
+  - `rules.mk` defines the targets of each VM's Makefile.
+  - The `Makefile` runs the renderer.
+- `example/registry/` is an example registry, and `example/provisioners/` what the image renders from it. Its `.images/` caches the images that the VMs download.
 
 ## How the parts fit
 

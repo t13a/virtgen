@@ -1,5 +1,3 @@
-// README.md describes the format of a VM, and AGENTS.md how this file and rules.mk fit together.
-
 // ---------------------------------------------------------------------------
 // Formats: XML, YAML and Make
 // ---------------------------------------------------------------------------
