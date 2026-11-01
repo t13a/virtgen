@@ -37,16 +37,9 @@ CI renders `example/registry` into an empty directory, so every file is validate
 $ podman run --rm --userns=keep-id -v ./example/registry:/src/registry -v ./example/provisioners:/src/provisioners virtgen
 ```
 
-The end-to-end test in `tests/` tests the renderer and `src/rules.mk`, not the example: its registry has one VM, `virtgen-e2e`, written without templates. It creates the VM on a node, runs the targets of its provisioner, and checks what each one leaves there. It needs the image built as above, what the provisioners need, and a node with the network `default` and the pool `default` at `/var/lib/libvirt/images`, such as the local libvirt or [libvirt-container](https://github.com/t13a/libvirt-container):
+After a change to `src/`, run the end-to-end test, which creates a VM on a real node and checks what each target of its provisioner does. [tests/README.md](tests/README.md) describes what it checks, and how to run it.
 
-```console
-$ make -C tests
-$ make -C tests E2E_URI='qemu+ssh://libvirt-user@127.0.0.1:2222/system?no_verify=1'
-```
-
-Each step is a target, so `make -C tests render up` runs the first two and leaves the VM for a look, as a failed step does. `make -C tests clean` deletes the VM and `tests/work/`. With Docker, give `E2E_RUN='docker run --rm --user UID:GID'`.
-
-Only a version tag, such as `v0.1.0`, publishes the image to `ghcr.io/t13a/virtgen`, under its version and as `latest`, once the end-to-end test passes on the runner. VMs run there without AppArmor, whose profiles the libvirt of the runner cannot load, so a change to the files that a VM opens also needs a run on a host with AppArmor. The test also runs when the workflow is run by hand from the Actions tab. Pull requests and pushes to `main` run only the render of the example.
+Only a version tag, such as `v0.1.0`, publishes the image to `ghcr.io/t13a/virtgen`, under its version and as `latest`, once the end-to-end test passes on the runner. The test also runs when the workflow is run by hand from the Actions tab. Pull requests and pushes to `main` run only the render of the example.
 
 ## Comments
 
