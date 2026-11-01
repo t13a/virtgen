@@ -1,6 +1,6 @@
-# vm-provisioner-libvirt-ng
+# virtgen
 
-A rewrite of [vm-provisioner-libvirt](https://github.com/t13a/vm-provisioner-libvirt). It renders a registry of VMs, written in Jsonnet, into provisioners. Each provisioner holds the libvirt XML and the cloud-init files of one VM, plus a Makefile that creates the VM with virsh.
+A generator of VM provisioners for libvirt, and a rewrite of [vm-provisioner-libvirt](https://github.com/t13a/vm-provisioner-libvirt). It renders a registry of VMs, written in Jsonnet, into provisioners. Each provisioner holds the libvirt XML and the cloud-init files of one VM, plus a Makefile that creates the VM with virsh.
 
 **This project is in an early stage of development. Anything may change without notice.**
 
@@ -9,26 +9,26 @@ A rewrite of [vm-provisioner-libvirt](https://github.com/t13a/vm-provisioner-lib
 Build the image. It renders a registry and validates the result.
 
 ```console
-$ podman build -t vm-provisioner-libvirt-ng src
+$ podman build -t virtgen src
 ```
 
 Or pull it from GitHub Packages, where every push to `main` publishes it as `latest`.
 
 ```console
-$ podman pull ghcr.io/t13a/vm-provisioner-libvirt-ng
-$ podman tag ghcr.io/t13a/vm-provisioner-libvirt-ng vm-provisioner-libvirt-ng
+$ podman pull ghcr.io/t13a/virtgen
+$ podman tag ghcr.io/t13a/virtgen virtgen
 ```
 
 Render the registry in `registry/` into `provisioners/`. This also updates `registry/index.libsonnet`, which lists the files of the registry. It validates the files that differ from the last render, and replaces `provisioners/` only when they are valid.
 
 ```console
-$ podman run --rm --userns=keep-id -v ./registry:/src/registry -v ./provisioners:/src/provisioners vm-provisioner-libvirt-ng
+$ podman run --rm --userns=keep-id -v ./registry:/src/registry -v ./provisioners:/src/provisioners virtgen
 ```
 
 `config` prints the VMs as the renderer sees them. It needs only the registry.
 
 ```console
-$ podman run --rm --userns=keep-id -v ./registry:/src/registry vm-provisioner-libvirt-ng config
+$ podman run --rm --userns=keep-id -v ./registry:/src/registry virtgen config
 ```
 
 Each VM gets its own Makefile. Its targets run on the host and need virsh, xorriso, curl, and ssh, plus sshpass for a VM that logs in with a password.

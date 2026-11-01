@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Build the image
-        run: docker build -t vm-provisioner-libvirt-ng src
+        run: docker build -t virtgen src
 
       # The render goes into an empty directory, so every file is validated, and it must match the
       # provisioners and the index that are committed.
@@ -29,7 +29,7 @@ jobs:
           docker run --rm --user "$(id -u):$(id -g)" \
             -v "$PWD/example/registry:/src/registry" \
             -v "$RUNNER_TEMP/provisioners:/src/provisioners" \
-            vm-provisioner-libvirt-ng
+            virtgen
           diff -r "$RUNNER_TEMP/provisioners" example/provisioners
           git diff --exit-code
 
