@@ -34,7 +34,7 @@ graph LR
   generator["Generator (container image)"]
   provisioner["Provisioners (a directory per VM)"]
   libvirt["libvirt on a node"]
-  registry -- read --> generator
+  generator -- read --> registry
   generator -- write --> provisioner
   provisioner -- "make up, make down" --> libvirt
 ```
