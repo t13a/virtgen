@@ -37,7 +37,16 @@ CI renders `example/registry` into an empty directory, so every file is validate
 $ podman run --rm --userns=keep-id -v ./example/registry:/src/registry -v ./example/provisioners:/src/provisioners virtgen
 ```
 
-Only a version tag, such as `v0.1.0`, publishes the image to `ghcr.io/t13a/virtgen`, under its version and as `latest`. Pull requests and pushes to `main` only test it.
+The end-to-end test in `tests/` creates a VM named `virtgen-e2e` on a node, runs the targets of its provisioner, and checks what each one leaves there. It needs the image built as above, what the provisioners need, and a node like the one of the example, such as the local libvirt or [libvirt-container](https://github.com/t13a/libvirt-container):
+
+```console
+$ make -C tests
+$ make -C tests E2E_URI='qemu+ssh://libvirt-user@127.0.0.1:2222/system?no_verify=1'
+```
+
+Each step is a target, so `make -C tests render up` runs the first two and leaves the VM for a look, as a failed step does. `make -C tests clean` deletes the VM and `tests/work/`. With Docker, give `E2E_RUN='docker run --rm --user UID:GID'`.
+
+Only a version tag, such as `v0.1.0`, publishes the image to `ghcr.io/t13a/virtgen`, under its version and as `latest`, once the end-to-end test passes on the runner. The test also runs when the workflow is run by hand from the Actions tab. Pull requests and pushes to `main` run only the render of the example.
 
 ## Comments
 
