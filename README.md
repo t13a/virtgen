@@ -87,6 +87,122 @@ $ make -C provisioners/debian13 down            # delete the VM; its image stays
 
 The VMs of the example log in with the password in `registry/secrets/`. To define your own VMs, copy the example registry and change it; the reference below describes its format.
 
+## Writing templates with virt-install
+
+A template holds libvirt XML, so writing one starts with finding the XML of a feature. virt-install and virt-xml know it. They turn options such as `--tpm` or `--graphics spice` into XML, and they can print that XML instead of creating anything. yq then turns the XML into the objects of a VM.
+
+### Requirements
+
+- virt-install and virt-xml, from the package `virt-install` on Debian.
+- yq of [mikefarah/yq](https://github.com/mikefarah/yq), version 4. The package `yq` of Debian is another tool.
+
+The commands below connect to the test driver of libvirt, `test:///default`, which lives only in the memory of each command. So they leave nothing on a real node, where virt-install can define a pool even with `--print-xml`.
+
+The examples use this shorthand, which turns XML into JSON with the `'@attr'` and `'#text'` of a VM. JSON is Jsonnet, so its output can go into a template as it is.
+
+```console
+$ alias x2j="yq -p xml -o json --xml-attribute-prefix @ --xml-content-name '#text'"
+```
+
+### One device
+
+`virt-xml --build-xml` prints the XML of a device:
+
+```console
+$ virt-xml --connect test:///default --build-xml --tpm default | x2j
+{
+  "tpm": {
+    "@model": "tpm-crb",
+    "backend": {
+      "@type": "emulator"
+    }
+  }
+}
+```
+
+A template adds it to the devices of the domain:
+
+```jsonnet
+// templates/tpm.libsonnet
+{ domain+: { devices+: {
+  tpm: { '@model': 'tpm-crb', backend: { '@type': 'emulator' } },
+} } }
+```
+
+### What an option brings along
+
+One option of virt-install can set more than one thing. To see what, compare the XML that virt-install prints with the option and without it. A fixed UUID keeps the two from differing in their UUIDs.
+
+```console
+$ VI='virt-install --connect test:///default --print-xml --name t --uuid 00000000-0000-0000-0000-000000000000 --memory 1024 --osinfo debian13 --import --disk none --network none'
+$ diff <($VI --graphics none) <($VI --graphics spice)
+17a18
+>     <vmport state="off"/>
+36a38,50
+>     <channel type="spicevmc">
+>       <target type="virtio" name="com.redhat.spice.0"/>
+>     </channel>
+>     <input type="tablet" bus="usb"/>
+>     <graphics type="spice" port="-1" tlsPort="-1" autoport="yes">
+>       <image compression="off"/>
+>     </graphics>
+>     <sound model="ich6"/>
+>     <video>
+>       <model type="qxl"/>
+>     </video>
+>     <redirdev bus="usb" type="spicevmc"/>
+>     <redirdev bus="usb" type="spicevmc"/>
+```
+
+So `--graphics spice` brings along these:
+
+- a channel for spice-vdagent;
+- a USB tablet;
+- a sound card;
+- a qxl video card;
+- USB redirection.
+
+It also turns off `vmport` in `<features>`.
+
+Pick what the template should have, and convert it inside one root element, which yq needs:
+
+```console
+$ x2j <<'EOF'
+<devices>
+  <channel type="spicevmc"><target type="virtio" name="com.redhat.spice.0"/></channel>
+  <video><model type="qxl"/></video>
+</devices>
+EOF
+```
+
+What virt-install picks depends on its version and on `--osinfo`, such as the model of the sound card.
+
+### A change to a VM
+
+`virt-xml --edit` and `--add-device` change a domain, and `--print-diff` prints the change. Given the `domain.xml` of a provisioner on its standard input, they show the change to that VM:
+
+```console
+$ virt-xml --connect test:///default --edit --cpu host-model --print-diff < provisioners/debian13/domain.xml
+--- Original XML
++++ Altered XML
+@@ -1,5 +1,5 @@
+ <domain type="kvm">
+-  <cpu mode="host-passthrough"/>
++  <cpu mode="host-model"/>
+```
+
+### Finding options
+
+- `virt-install --help` lists the options.
+- An option followed by `=?` lists its suboptions, as in `virt-install --disk=?`.
+- [Domain XML format](https://libvirt.org/formatdomain.html) of libvirt describes each element.
+
+### From the output to a template
+
+- **Placing:** put the devices into `{ domain+: { devices+: ... } }`, and other elements where they belong, such as `vmport` into `features`.
+- **Naming:** give a key a name, as in `'channel:com.redhat.spice.0'`, when another template can add an element of the same name. Then both elements stay, instead of one replacing the other.
+- **Trimming:** leave out what the VM does not need, and make a parameter of what differs between VMs.
+
 ## Reference
 
 ### Generator
